@@ -28,9 +28,7 @@ The `concensusDataSet` object has methods to carry out ConcensusGLM analysis.
 
 ## Citation
 
-[New inhibitors of Mycobacterium tuberculosis identified using systems chemical biology](https://doi.org/10.1101/396440), bioRxiv, Aug 2018
-
-Eachan O Johnson, Emily LaVerriere, Mary Stanley, Emma Office, Elisabeth Meyer, Tomohiko Kawate, James Gomez, Rebecca E Audette, Nirmalya Bandyopadhyay, Natalia Betancourt, Kayla Delano, Israel Da Silva, Joshua Davis, Christina Gallo, Michelle Gardner,  Aaron Golas,  Kristine M Guinn, Rebecca Korn, Jennifer A McConnell, Caitlin E Moss,  Kenan C Murphy, Ray Nietupski,  Kadamba G Papavinasasundaram, Jessica T Pinkham, Paula A Pino,  Megan K Proulx, Nadine Ruecker, Naomi Song, Matthew Thompson, Carolina Trujillo, Shoko Wakabayashi, Joshua B Wallach, Christopher Watson,  Thomas R Ioerger, Eric S Lander, Brian K Hubbard,  Michael H Serrano-Wu,  Sabine Ehrt, Michael Fitzgerald, Eric J Rubin,  Christopher M Sassetti,  Dirk Schnappinger,  Deborah T Hung
+Eachan O. Johnson *et. al.*, [New inhibitors of *Mycobacterium tuberculosis* identified using systems chemical biology](https://doi.org/10.1101/396440), *bioRxiv*, Aug 2018, doi: [10.1101/396440](https://doi.org/10.1101/396440)
 
 ## See also
 
