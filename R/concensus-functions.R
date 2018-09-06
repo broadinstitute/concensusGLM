@@ -49,8 +49,15 @@ get_controls <- function(command_args, ...) {
 }
 
 check_headers <- function(dataframe,
-                          essential_headers=c('compound', 'concentration', 'strain', 'plate_name', 'count'))
-  stopifnot(all(essential_headers %in% names(dataframe)))
+                          essential_headers=c('compound', 'concentration', 'strain', 'plate_name', 'count')) {
+
+  if ( ! all(essential_headers %in% names(dataframe)) ) {
+
+    stop(paste('Missing headers from data:', pyjoin(setdiff(essential_headers, names(dataframe)), char=', ')))
+
+  }
+
+}
 
 pyjoin <- function(x, char) paste(x, collapse=char)
 

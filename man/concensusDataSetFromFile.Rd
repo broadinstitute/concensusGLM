@@ -6,7 +6,8 @@
 \usage{
 concensusDataSetFromFile(data_filename, annotation_filename = NULL,
   output_path = ".", controls = NULL, rename = NULL, test = FALSE,
-  checkpoint = FALSE, threshold = 1000, ...)
+  checkpoint = FALSE, threshold = 1000, spike_in = "^intcon",
+  pseudostrains = TRUE, ...)
 }
 \arguments{
 \item{data_filename}{Character. Path to a table of counts.}
@@ -14,17 +15,23 @@ concensusDataSetFromFile(data_filename, annotation_filename = NULL,
 \item{annotation_filename}{Character. Optional. Path to experimental annotations. These will be joined to the input data
 and used for batch correction.}
 
-\item{output_path}{Character. Path to directory where you want the analysis output. Default is current working directory.}
+\item{output_path}{Character. Path to directory where you want the analysis output. This is also where
+checkpoints and logs from cluster execution are stored. Default is current working directory.}
 
-\item{controls}{Named list with elements \code{positive} and \code{negative}.
-Adds logical columns to data called \code{positive_control} and \code{negative_control}.}
+\item{controls}{Named list of Characters with elements \code{positive} and \code{negative}.
+Adds logical columns to data called \code{positive_control} and \code{negative_control} based on regular expression
+matches.}
 
-\item{test}{Logical. Run in test mode?}
+\item{test}{Logical. Run in test mode? If so, only reads the first 5 million lines of \code{data_filename}.}
 
 \item{checkpoint}{Logical. Save intermediate results as checkpoints?}
 
-\item{threshold}{Numeric. Strains below this total count threshold will be discarded.
+\item{threshold}{Numeric. Strains below this total count threshold will be discarded. Default \code{1000}.
 Plates below 1000 x \code{threshold} will be discarded.}
+
+\item{spike_in}{Character. A regular expression to match spike-in controls.}
+
+\item{pseudostrains}{Logical. Make pseudostrains such as "total", which is the sum of all non-spike-ins.}
 }
 \value{
 list of class "concensusDataSet"
@@ -33,7 +40,31 @@ list of class "concensusDataSet"
 Set up analysis container for ConcensusGLM using path to data as input. Performs validity checks on the input.
 Optionally annotates input with experimental metadata from \code{annotation_filename}.
 }
+\details{
+This creates the concensusDataSet object from \code{data_filename} on which downstream analysis is carried out.
+
+The input CSV should be found at \code{data_filename}. This CSV should at least have the headers
+\code{'compound', 'concentration', 'strain', 'plate_name', 'count', 'well'}, and must have one row per
+strain-compound-concentration-plate_name-well combination. Together, "plate_name" and "well" define unique experimental
+samples. If "row" and "column" are present but not "well", then well is constructed by concatenating "row" and "column".
+
+Firstly, thsi function, loads a CSV from \code{data_filename}. This may take some time if it is a large file. It then checks
+that the minimum headers are present.
+
+It then checks for either a \code{negative_control} column or a list of control compounds supplied to \code{controls} argument.
+
+Under-represented (assumed to be spurious) strains and plates (as defined by \code{threshold}) are removed.
+
+Then, pseudo-strains are built if requested (the default). So far, the only pseudo-strain defined is "total", which
+is the total counts per well of non-spike-in strains.
+
+If defined, annotations (like experimental meta-data) are loaded from \code{annotation_filename}. This CSV file needs a
+column name in common with \code{data_filename} (case sensitive) since the next step is a join on the shared columns.
+
+Finally, it adds a \code{negative_control} column if necessary and a \code{positive_control} column if defined, and checks
+that there are at least 2 negative control observations.
+}
 \seealso{
-\link{workflows::newWorkflow}, \link{concensusDataSetFromFile}
+\link{newWorkflow}, \link{pipeline}, \link{concensusDataSetFromFile}
 }
 
