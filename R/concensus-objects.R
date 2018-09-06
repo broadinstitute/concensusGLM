@@ -6,43 +6,15 @@
 directoryTree <- function ( path='.' ) {
 
   top.dir <- file.path(path, 'concensusGLM-results')
-  plot.dir <- 'plots'
-
-  plot.path <- file.path(top.dir, plot.dir)
-  plot.subdirs <- c(
-    'dispersions', 'heatmaps', 'histograms', 'resampling',
-    'ma-plots', 'rocs', 'dose-response-curves', 'nuisance-factors', 'pca',
-    'plate-heatmaps', 'chemistry', 'hits'
-  )
 
   csv.dir <- 'tables'
   csv.path <- file.path(top.dir, csv.dir)
 
-  dir.tree <- lapply(plot.subdirs, function (x) {
-    if ( ! file.exists(file.path(plot.path, x)) ) {
-      println('Creating', file.path(plot.path, x))
-      dir.create(file.path(plot.path, x), showWarnings=FALSE, recursive=TRUE)
-    }
-  })
   dir.create(csv.path, showWarnings=FALSE, recursive=TRUE)
 
   return.list <- structure(list(
     top=top.dir,
-    tables=csv.path,
-    #checkpoints=file.path(top.dir, 'checkpoints'),
-    plots=plot.path,
-    #hist=file.path(plot.path, 'histograms'),
-    dispersions=file.path(plot.path, 'dispersions'),
-    #heatmaps=file.path(plot.path, 'heatmaps'),
-    plate.heatmaps=file.path(plot.path, 'plate-heatmaps'),
-    ma.plots=file.path(plot.path, 'ma-plots'),
-    #rocs=file.path(plot.path, 'rocs'),
-    pca=file.path(plot.path, 'pca'),
-    dr.curves=file.path(plot.path, 'dose-response-curves'),
-    #nuisance=file.path(plot.path, 'nuisance-factors'),
-    #resampling=file.path(plot.path, 'resampling'),
-    #chemistry=file.path(plot.path, 'chemistry'),
-    hits=file.path(plot.path, 'hits')
+    tables=csv.path
   ), class='directoryTree')
 
   return ( return.list )
