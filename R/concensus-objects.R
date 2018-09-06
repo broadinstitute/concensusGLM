@@ -5,7 +5,7 @@
 #' @export
 directoryTree <- function ( path='.' ) {
 
-  top.dir <- file.path(path, 'concensus-analysis4')
+  top.dir <- file.path(path, 'concensusGLM-results')
   plot.dir <- 'plots'
 
   plot.path <- file.path(top.dir, plot.dir)

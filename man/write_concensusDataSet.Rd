@@ -4,19 +4,20 @@
 \alias{write_concensusDataSet}
 \title{Write ConcensusDataSet to disk}
 \usage{
-write_concensusDataSet(x, filename, ...)
+write_concensusDataSet(x, filename, clean = TRUE, ...)
 }
 \arguments{
 \item{x}{ConcensusDataSet.}
 
 \item{filename}{Character. Where to save.}
 
-\item{...}{Other arguments.}
+\item{...}{Other arguments passed to \code{write_workflow}.}
 }
 \description{
-Serialize ConcensusDataSet to disk under \code{filename}.
+Serialize ConcensusDataSet to disk under \code{filename}. A wrapper to \code{write_workflow} from the
+\code{workflows} package.
 }
 \seealso{
-\link{saveRDS}
+\link{saveRDS}, \link{write_workflow}
 }
 
