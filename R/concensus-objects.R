@@ -83,6 +83,8 @@ newConcensusDataSet <- function(checkpoint=FALSE, working_directory='.', load_ch
 #' Adds logical columns to data called \code{positive_control} and \code{negative_control}.
 #' @param test Logical. Run in test mode?
 #' @param checkpoint Logical. Save intermediate results as checkpoints?
+#' @param threshold Numeric. Strains below this total count threshold will be discarded.
+#' Plates below 1000 x \code{threshold} will be discarded.
 #' @return list of class "concensusDataSet"
 #' @seealso \link{workflows::newWorkflow}, \link{concensusDataSetFromFile}
 #' @import workflows
@@ -90,6 +92,7 @@ newConcensusDataSet <- function(checkpoint=FALSE, working_directory='.', load_ch
 #' @export
 concensusDataSetFromFile <- function(data_filename, annotation_filename=NULL, output_path='.',
                                      controls=NULL, rename=NULL, test=FALSE, checkpoint=FALSE,
+                                     threshold=1000,
                                      ...) {
 
   library('readr')
@@ -103,9 +106,9 @@ concensusDataSetFromFile <- function(data_filename, annotation_filename=NULL, ou
 
   original_columns <- names(data_)
 
-  stopifnot('control' %in% original_columns | !is.null(controls))
+  stopifnot(all(c('positive_control', 'negative_control') %in% original_columns) | !is.null(controls))
 
-  data_ <- clean(data_)
+  data_ <- clean(data_, threshold=threshold)
 
   if ( ! is.null(annotation_filename) ) {
 

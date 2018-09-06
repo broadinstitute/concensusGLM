@@ -6,7 +6,7 @@
 \usage{
 concensusDataSetFromFile(data_filename, annotation_filename = NULL,
   output_path = ".", controls = NULL, rename = NULL, test = FALSE,
-  checkpoint = FALSE, ...)
+  checkpoint = FALSE, threshold = 1000, ...)
 }
 \arguments{
 \item{data_filename}{Character. Path to a table of counts.}
@@ -22,6 +22,9 @@ Adds logical columns to data called \code{positive_control} and \code{negative_c
 \item{test}{Logical. Run in test mode?}
 
 \item{checkpoint}{Logical. Save intermediate results as checkpoints?}
+
+\item{threshold}{Numeric. Strains below this total count threshold will be discarded.
+Plates below 1000 x \code{threshold} will be discarded.}
 }
 \value{
 list of class "concensusDataSet"

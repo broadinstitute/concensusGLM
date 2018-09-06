@@ -2,7 +2,8 @@
 #' @description Clean up ConcensusGLM data. Removes strains with total count across data below \code{threshold} and plates
 #' with total counts below 1000 x \code{threshold}
 #' @param x data.frame to clean.
-#' @param threshold Strains below this total count threshold will be discarded. Plates below 1000 x \code{threshold} will be discarded.
+#' @param threshold Numeric. Strains below this total count threshold will be discarded.
+#' Plates below 1000 x \code{threshold} will be discarded.
 #' @param ... Other arguments.
 #' @return Cleaned data.frame
 #' @export
@@ -103,6 +104,8 @@ scatter.concensusWorkflow <- function(x, by, ...) {
   println('Scattering by', by, '...')
   println('Scattering by', by, 'will give', length(get_unique_values(x$pipelines[[1]]$data$data, by)), 'chunks')
 
+  class(x) <- 'workflow'
+
   new_concensus_workflow <- structure(workflows::scatter(x, elements='data', by=by), class=c('concensusWorkflow', 'workflow'))
 
   return ( new_concensus_workflow )
@@ -112,7 +115,7 @@ scatter.concensusWorkflow <- function(x, by, ...) {
 #' @title Gather concensusWorkflow
 #' @description Gather concensusWorkflow back into a single pipeline.
 #' @param x concensusWorkflow.
-#' @param ... Otehr arguments.
+#' @param ... Other arguments passed to \code{workflows::execute}.
 #' @return Gathered concensusWorkflow
 #' @seealso \link{gather}
 #' @export
@@ -120,9 +123,29 @@ gather.concensusWorkflow <- function(x, ...) {
 
   println('Gathering', x$pipelines[[1]]$scattered_by, '...')
 
+  class(x) <- 'workflow'
+
   new_concensus_workflow <- structure(workflows::gather(x, elements=c('data', 'mean_variance_relationship',
                                                                     'dispersion', 'batch_effect_model',
-                                                                    'model_parameters')),
+                                                                    'model_parameters'), ...),
+                                      class=c('concensusWorkflow', 'workflow'))
+
+  return ( new_concensus_workflow )
+
+}
+
+#' @title Execute concensusWorkflow
+#' @description Execute concensusWorkflow analysis pipeline.
+#' @param x concensusWorkflow.
+#' @param ... Other arguments passed to \code{workflows::execute}.
+#' @return Executed concensusWorkflow
+#' @seealso \link{execute}
+#' @export
+execute.concensusWorkflow <- function(x, locality='local', parallel=FALSE, clobber=FALSE, ...) {
+
+  class(x) <- 'workflow'
+
+  new_concensus_workflow <- structure(workflows::execute(x, locality=locality, parallel=parallel, clobber=clobber, ...),
                                       class=c('concensusWorkflow', 'workflow'))
 
   return ( new_concensus_workflow )

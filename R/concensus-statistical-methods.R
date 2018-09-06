@@ -83,6 +83,7 @@ getBatchEffects.concensusWorkflow <- function(x, ...) {
 }
 
 #' @importFrom magrittr %>%
+#' @importFrom errR %except%
 #' @export
 getBatchEffects.concensusDataSet <- function(x, grouping=c('compound', 'concentration', 'strain'), ...) {
 

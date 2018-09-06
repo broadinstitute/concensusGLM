@@ -35,7 +35,7 @@ Eachan O. Johnson *et. al.*, [New inhibitors of *Mycobacterium tuberculosis* ide
 Dependencies:
 
 - R
-- [broom](https://github.com/hadley/broom)
+- [broom](https://github.com/tidymodels/broom)
 - [dplyr](https://github.com/hadley/dplyr)
 - [errR](https://github.com/eachanjohnson/errR)
 - [future](https://github.com/HenrikBengtsson/future)
@@ -48,5 +48,5 @@ Dependencies:
 Similar approaches include but are not limited to:
 
 - [DESeq2](https://github.com/mikelove/DESeq2)
-- [edgeR]()
-- [limma](https://github.com/mikelove/DESeq2)
+- [edgeR](https://doi.org/doi:10.18129/B9.bioc.edgeR)
+- [limma](https://doi.org/doi:10.18129/B9.bioc.limma)

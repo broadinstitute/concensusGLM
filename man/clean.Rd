@@ -11,7 +11,8 @@ clean(x, ...)
 
 \item{...}{Other arguments.}
 
-\item{threshold}{Strains below this total count threshold will be discarded. Plates below 1000 x \code{threshold} will be discarded.}
+\item{threshold}{Numeric. Strains below this total count threshold will be discarded.
+Plates below 1000 x \code{threshold} will be discarded.}
 }
 \value{
 Cleaned data.frame

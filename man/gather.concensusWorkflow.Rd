@@ -4,12 +4,12 @@
 \alias{gather.concensusWorkflow}
 \title{Gather concensusWorkflow}
 \usage{
-gather.concensusWorkflow(x, ...)
+\method{gather}{concensusWorkflow}(x, ...)
 }
 \arguments{
 \item{x}{concensusWorkflow.}
 
-\item{...}{Otehr arguments.}
+\item{...}{Other arguments passed to \code{workflows::execute}.}
 }
 \value{
 Gathered concensusWorkflow

@@ -1,0 +1,5 @@
+plate_name,plate_seq,plate_source,primer_plate,thermocycler,overnight_cycle,library
+BR00074003,57,CM 6,24,F,no,1
+AB00019021.3,19,AB00019021,17,I,no,3
+BR00074009,63,CM 9,24,O,no,7
+AB00019030.8,32,AB00019030,20,P,no,8

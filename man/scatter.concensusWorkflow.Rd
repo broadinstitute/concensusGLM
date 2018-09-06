@@ -4,7 +4,7 @@
 \alias{scatter.concensusWorkflow}
 \title{Scatter concensusWorkflow}
 \usage{
-scatter.concensusWorkflow(x, by, ...)
+\method{scatter}{concensusWorkflow}(x, by, ...)
 }
 \arguments{
 \item{x}{concensusWorkflow.}
