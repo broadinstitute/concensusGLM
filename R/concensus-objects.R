@@ -50,9 +50,11 @@ newConcensusDataSet <- function(checkpoint=FALSE, working_directory='.', load_ch
 #' @details This creates the concensusDataSet object from \code{data_filename} on which downstream analysis is carried out.
 #'
 #' The input CSV should be found at \code{data_filename}. This CSV should at least have the headers
-#' \code{'compound', 'concentration', 'strain', 'plate_name', 'count', 'well'}, and must have one row per
-#' strain-compound-concentration-plate_name-well combination. Together, "plate_name" and "well" define unique experimental
-#' samples. If "row" and "column" are present but not "well", then well is constructed by concatenating "row" and "column".
+#' \code{'id', 'compound', 'concentration', 'strain', 'plate_name', 'count', 'well'}, and must have one row per
+#' strain-compound-concentration-plate_name-well combination. Together, "id", "plate_name" and "well" define unique experimental
+#' samples; "id" refers to sequencing (technical) replicates (if any) and "plate_name" and "well" are biological replicates
+#' (recommended). Any given condition should have at least 2 replicates of some kind. If "row" and "column"
+#' are present but not "well", then well is constructed by concatenating "row" and "column".
 #'
 #' Firstly, thsi function, loads a CSV from \code{data_filename}. This may take some time if it is a large file. It then checks
 #' that the minimum headers are present.
@@ -98,7 +100,7 @@ concensusDataSetFromFile <- function(data_filename, annotation_filename=NULL, ou
   if ( test ) data_ <- readr::read_csv(data_filename, progress=TRUE, n_max=5e6)
   else        data_ <- readr::read_csv(data_filename, progress=TRUE)
 
-  check_headers(data_, essential_headers=c('compound', 'concentration', 'strain', 'plate_name', 'count'))
+  check_headers(data_, essential_headers=c('id', 'compound', 'concentration', 'strain', 'plate_name', 'count'))
 
   if ( ! 'well' %in% names(data_) & all(c('row', 'column') %in% names(data_)) ) {
 
@@ -126,9 +128,10 @@ concensusDataSetFromFile <- function(data_filename, annotation_filename=NULL, ou
 
     pseudostrain_total <- data_ %>%
       dplyr::filter(!grepl(spike_in, strain)) %>%
-      dplyr::group_by(plate_name, well) %>%
+      dplyr::group_by(id, plate_name, well) %>%
       dplyr::summarize(count=sum(count)) %>%
       dplyr::ungroup() %>%
+      dplyr::mutate(strain='pseudostrain_total') %>%
       dplyr::left_join(data_ %>% dplyr::ungroup() %>% dplyr::select(-count, -strain) %>% dplyr::distinct())
 
     stopifnot(length(setdiff(names(pseudostrain_total), names(data_))) == 0)

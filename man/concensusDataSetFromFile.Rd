@@ -44,9 +44,11 @@ Optionally annotates input with experimental metadata from \code{annotation_file
 This creates the concensusDataSet object from \code{data_filename} on which downstream analysis is carried out.
 
 The input CSV should be found at \code{data_filename}. This CSV should at least have the headers
-\code{'compound', 'concentration', 'strain', 'plate_name', 'count', 'well'}, and must have one row per
-strain-compound-concentration-plate_name-well combination. Together, "plate_name" and "well" define unique experimental
-samples. If "row" and "column" are present but not "well", then well is constructed by concatenating "row" and "column".
+\code{'id', 'compound', 'concentration', 'strain', 'plate_name', 'count', 'well'}, and must have one row per
+strain-compound-concentration-plate_name-well combination. Together, "id", "plate_name" and "well" define unique experimental
+samples; "id" refers to sequencing (technical) replicates (if any) and "plate_name" and "well" are biological replicates
+(recommended). Any given condition should have at least 2 replicates of some kind. If "row" and "column"
+are present but not "well", then well is constructed by concatenating "row" and "column".
 
 Firstly, thsi function, loads a CSV from \code{data_filename}. This may take some time if it is a large file. It then checks
 that the minimum headers are present.

@@ -49,5 +49,7 @@ concensus_data <- execute(concensus_data, locality='local', parallel=FALSE)
 # gather back together
 concensus_data <- gather(concensus_data)
 
+stopifnot('model_parameters' %in% names(concensus_data$pipelines[[1]]$data))
+
 # save
 write_concensusDataSet(concensus_data, paste0(concensus_data$pipelines[[1]]$data$output_prefix, '-concensus-data.rds'))
