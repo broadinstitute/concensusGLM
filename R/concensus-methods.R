@@ -81,15 +81,6 @@ print.concensusDataSet <- function(x, ...) {
 
 }
 
-#' @title Write ConcensusDataSet to disk
-#' @description Serialize ConcensusDataSet to disk under \code{filename}.
-#' @param x ConcensusDataSet.
-#' @param filename Character. Where to save.
-#' @param ... Other arguments.
-#' @seealso \link{saveRDS}
-#' @export
-write_concensusDataSet <- function(x, filename, ...) saveRDS(x, file=filename)
-
 #' @title Scatter concensusWorkflow
 #' @description Scatter concensusWorkflow based on unique values of column \code{by} in the input data.
 #' Allows parallelization of downstream analysis.
@@ -152,4 +143,14 @@ execute.concensusWorkflow <- function(x, locality='local', parallel=FALSE, clobb
 
 }
 
+#' @title Write ConcensusDataSet to disk
+#' @description Serialize ConcensusDataSet to disk under \code{filename}. A wrapper to \code{write_workflow} from the
+#' \code{workflows} package.
+#' @param x ConcensusDataSet.
+#' @param filename Character. Where to save.
+#' @param ... Other arguments passed to \code{write_workflow}.
+#' @seealso \link{saveRDS}, \link{write_workflow}
+#' @export
+write_concensusDataSet <- function(x, filename, clean=TRUE, ...)
+  workflows::write_workflow(structure(x, class='workflow'), file=filename, clean=TRUE, ...)
 

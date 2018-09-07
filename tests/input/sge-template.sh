@@ -4,7 +4,7 @@
 #$ -N __name__
 #$ -j y
 #$ -o __logfile__
-#$ -l h_vmem=__virtualmemory__g,h_rt=2:00:00
+#$ -l h_vmem=__virtualmemory__m,h_rt=__runtime__
 
 source /broad/software/scripts/useuse
 reuse R-3.2
