@@ -2,9 +2,19 @@
 % Please edit documentation in R/concensus-statistical-methods.R
 \name{getFinalModel}
 \alias{getFinalModel}
+\alias{getFinalModel.concensusDataSet}
+\alias{getFinalModel.concensusWorkflow}
+\alias{getFinalModel.default}
 \title{Fit final model}
 \usage{
 getFinalModel(x, ...)
+
+\method{getFinalModel}{default}(x, ...)
+
+\method{getFinalModel}{concensusWorkflow}(x, ...)
+
+\method{getFinalModel}{concensusDataSet}(x, conditions = c("compound",
+  "concentration"), grouping = "strain", ...)
 }
 \arguments{
 \item{x}{concensusWorkflow or concensusDataSet.}

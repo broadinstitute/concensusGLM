@@ -2,9 +2,19 @@
 % Please edit documentation in R/concensus-statistical-methods.R
 \name{getBatchEffects}
 \alias{getBatchEffects}
+\alias{getBatchEffects.concensusDataSet}
+\alias{getBatchEffects.concensusWorkflow}
+\alias{getBatchEffects.default}
 \title{Get experimental batch effects}
 \usage{
 getBatchEffects(x, ...)
+
+\method{getBatchEffects}{default}(x, ...)
+
+\method{getBatchEffects}{concensusWorkflow}(x, ...)
+
+\method{getBatchEffects}{concensusDataSet}(x, grouping = c("compound",
+  "concentration", "strain"), ...)
 }
 \arguments{
 \item{x}{concensusWorkflow or concensusDataSet.}

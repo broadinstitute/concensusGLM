@@ -12,18 +12,21 @@
 #' @export
 getRoughDispersions <- function(x, ...) UseMethod('getRoughDispersions')
 
+#' @rdname getRoughDispersions
 #' @export
 getRoughDispersions.default <- function(x, ...) stop('Can\'t get rough dispersions of ', class(x))
 
+#' @rdname getRoughDispersions
 #' @export
 getRoughDispersions.concensusWorkflow <- function(x, ...) {
 
-  x <- workflows::delay(x, getRoughDispersions)
+  x <- workflows::delay(x, getRoughDispersions, ...)
 
   return (x)
 
 }
 
+#' @rdname getRoughDispersions
 #' @importFrom magrittr %>%
 #' @export
 getRoughDispersions.concensusDataSet <- function(x, grouping=c('compound', 'concentration', 'strain'), ...) {
@@ -70,28 +73,31 @@ getRoughDispersions.concensusDataSet <- function(x, grouping=c('compound', 'conc
 #' @export
 getBatchEffects <- function(x, ...) UseMethod('getBatchEffects')
 
+#' @rdname getBatchEffects
 #' @export
 getBatchEffects.default <- function(x, ...) stop('Can\'t get batch effects of ', class(x))
 
+#' @rdname getBatchEffects
 #' @export
 getBatchEffects.concensusWorkflow <- function(x, ...) {
 
-  x <- workflows::delay(x, getBatchEffects)
+  x <- workflows::delay(x, getBatchEffects, ...)
 
   return (x)
 
 }
 
+#' @rdname getBatchEffects
 #' @importFrom magrittr %>%
 #' @importFrom errR %except%
 #' @export
 getBatchEffects.concensusDataSet <- function(x, grouping=c('compound', 'concentration', 'strain'), ...) {
 
-  not_batch_effects <- c('plate_number', 'column', 'plate_seq', 'compound', 'concentration',
+  not_batch_effects <- unique(c('plate_number', 'column', 'plate_seq', 'compound', 'concentration',
                          'strain', 'solvent', 'replicate', 'plate_seq', 'plate_source',
                          'positive_control', 'negative_control', 'predicted_null_count', 'count',
                          'plate_type', 'well_type', 'well', 'quadrant', 'gc_content', 'condition_group',
-                         'i5_id', 'i7_id')
+                         'i5_id', 'i7_id'), grouping)
 
   untreated_data <- x$data %>% dplyr::filter(negative_control)
 
@@ -112,7 +118,7 @@ getBatchEffects.concensusDataSet <- function(x, grouping=c('compound', 'concentr
   println('Modeling batch effects:', pyjoin(selected_batch_effects, ', '))
 
   x$data <- x$data %>% make_columns_factors(selected_batch_effects)
-  untreated_data <- x$data %>% filter(negative_control)
+  untreated_data <- x$data %>% dplyr::filter(negative_control)
 
   underrepresented_batch_effects <- Filter(function(z) check_same_levels(x$data, untreated_data, z), selected_batch_effects)
 
@@ -128,8 +134,10 @@ getBatchEffects.concensusDataSet <- function(x, grouping=c('compound', 'concentr
 
     not_represented_yet    <- length(missing_levels) > 0
 
-    average_representation <- untreated_data %>% dplyr::group_by_(.dots=be) %>%
-      dplyr::summarize(n_times=n()) %>% dplyr::select(n_times) %>%
+    average_representation <- untreated_data %>%
+      dplyr::group_by_(.dots=be) %>%
+      dplyr::summarize(n_times=n()) %>%
+      dplyr::select(n_times) %>%
       unlist() %>% mean() %>% as.integer()
 
     if ( not_represented_yet ) {
@@ -139,7 +147,8 @@ getBatchEffects.concensusDataSet <- function(x, grouping=c('compound', 'concentr
               'wells as untreated')
 
       untreated_data <- bind_rows(untreated_data,
-                                  x$data %>% dplyr::filter(!negative_control, !positive_control) %>%
+                                  x$data %>%
+                                    dplyr::filter(!negative_control, !positive_control) %>%
                                     dplyr::filter_(paste0(be, '%in% c(\'', pyjoin(missing_levels, '\', \''), '\')')) %>%
                                     dplyr::sample_n(average_representation, replace=TRUE))
     }
@@ -183,18 +192,21 @@ getBatchEffects.concensusDataSet <- function(x, grouping=c('compound', 'concentr
 #' @export
 getFinalDispersions <- function(x, ...) UseMethod('getFinalDispersions')
 
+#' @rdname getFinalDispersions
 #' @export
 getFinalDispersions.default <- function(x, ...) stop('Can\'t get final dispersions of ', class(x))
 
+#' @rdname getFinalDispersions
 #' @export
 getFinalDispersions.concensusWorkflow <- function(x, ...) {
 
-  x <- workflows::delay(x, getFinalDispersions)
+  x <- workflows::delay(x, getFinalDispersions, ...)
 
   return (x)
 
 }
 
+#' @rdname getFinalDispersions
 #' @importFrom magrittr %>%
 #' @export
 getFinalDispersions.concensusDataSet <- function(x, ...) {
@@ -258,19 +270,21 @@ getFinalDispersions.concensusDataSet <- function(x, ...) {
 #' @export
 getFinalModel <- function(x, ...) UseMethod('getFinalModel')
 
+#' @rdname getFinalModel
 #' @export
 getFinalModel.default <- function(x, ...) stop('Can\'t get final model of ', class(x))
 
+#' @rdname getFinalModel
 #' @export
-getFinalModel.concensusWorkflow <- function(x, conditions=c('compound', 'concentration'), grouping='strain',
-                                            ...) {
+getFinalModel.concensusWorkflow <- function(x, ...) {
 
-  x <- workflows::delay(x, getFinalModel)
+  x <- workflows::delay(x, getFinalModel, ...)
 
   return (x)
 
 }
 
+#' @rdname getFinalModel
 #' @importFrom magrittr %>%
 #' @import methods
 #' @export
@@ -292,7 +306,8 @@ getFinalModel.concensusDataSet <- function(x, conditions=c('compound', 'concentr
   println('Reference level is', negative_level)
   println('Dispersion is', signif(nb_dispersion, 2))
   println('Fitting Negative Binomial GLM for',
-          x$data %>% dplyr::filter(!negative_control) %>% get_unique_values('condition_group', length), 'conditions')
+          x$data %>% dplyr::filter(!negative_control) %>% get_unique_values('condition_group', length),
+          'conditions as defined', pyjoin(conditions, ' + '))
 
   x$model_parameters <- x$data %>%
     dplyr::filter(!negative_control) %>%
@@ -303,7 +318,10 @@ getFinalModel.concensusDataSet <- function(x, conditions=c('compound', 'concentr
                      dplyr::mutate(condition_group=factor(condition_group) %>% relevel(ref=negative_level)),
                    y=FALSE) %>%
                  broom::tidy() %>%
-                 dplyr::mutate(p.value=as.numeric(p.value))) ) #%except% data.frame(NULL))
+                 dplyr::mutate(p.value=as.numeric(p.value),
+                               lfc=estimate,
+                               l2fc=estimate / log(2),
+                               std.error_log2=std.error / log(2))) ) #%except% data.frame(NULL))
 
   intercepts <- negative_controls %>%
     dplyr::group_by_(.dots=c(grouping)) %>%

@@ -5,10 +5,18 @@
 \title{Execute concensusWorkflow}
 \usage{
 \method{execute}{concensusWorkflow}(x, locality = "local", parallel = FALSE,
-  clobber = FALSE, ...)
+  clobber = FALSE, submit_script = file.path("exec/sge-template.sh"), ...)
 }
 \arguments{
 \item{x}{concensusWorkflow.}
+
+\item{locality}{Character. \code{"local"} for local machine (the default) or \code{"sge"} for GridEngine.}
+
+\item{parallel}{Logical. Run in multicore parallel.}
+
+\item{clobber}{Logical. If \code{TRUE}, start from beginning of workflow; if \code{FALSE}, start from last built target.}
+
+\item{submit_script}{Character. If \code{locality="sge"}, path to template SGE script}
 
 \item{...}{Other arguments passed to \code{workflows::execute}.}
 }

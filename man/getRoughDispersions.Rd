@@ -2,9 +2,19 @@
 % Please edit documentation in R/concensus-statistical-methods.R
 \name{getRoughDispersions}
 \alias{getRoughDispersions}
+\alias{getRoughDispersions.concensusDataSet}
+\alias{getRoughDispersions.concensusWorkflow}
+\alias{getRoughDispersions.default}
 \title{Get rough Negative Binomial dispersion parameters}
 \usage{
 getRoughDispersions(x, ...)
+
+\method{getRoughDispersions}{default}(x, ...)
+
+\method{getRoughDispersions}{concensusWorkflow}(x, ...)
+
+\method{getRoughDispersions}{concensusDataSet}(x, grouping = c("compound",
+  "concentration", "strain"), ...)
 }
 \arguments{
 \item{x}{concensusWorkflow or concensusDataSet.}

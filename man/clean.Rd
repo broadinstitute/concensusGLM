@@ -2,9 +2,15 @@
 % Please edit documentation in R/concensus-methods.R
 \name{clean}
 \alias{clean}
+\alias{clean.data.frame}
+\alias{clean.default}
 \title{Clean up ConcensusGLM data}
 \usage{
 clean(x, ...)
+
+\method{clean}{default}(x, ...)
+
+\method{clean}{data.frame}(x, threshold = 1000, ...)
 }
 \arguments{
 \item{x}{data.frame to clean.}

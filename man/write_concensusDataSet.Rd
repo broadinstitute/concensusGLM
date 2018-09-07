@@ -4,12 +4,20 @@
 \alias{write_concensusDataSet}
 \title{Write ConcensusDataSet to disk}
 \usage{
-write_concensusDataSet(x, filename, clean = TRUE, ...)
+write_concensusDataSet(x, filename, clean = TRUE, input_csv = TRUE,
+  output_csv = TRUE, output_matrix = FALSE, ...)
 }
 \arguments{
 \item{x}{ConcensusDataSet.}
 
 \item{filename}{Character. Where to save.}
+
+\item{input_csv}{Character. Write.}
+
+\item{output_csv}{Character. Where to save.}
+
+\item{output_matrix}{Logical. Save a matrix of strains and conditions. Make sure concentrations (if used for
+final fit) are common across all compounds or this will make a mess.}
 
 \item{...}{Other arguments passed to \code{write_workflow}.}
 }
