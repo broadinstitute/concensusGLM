@@ -17,6 +17,8 @@ Depends:
 Remotes:
     eachanjohnson/errR,
     eachanjohnson/workflows
+Suggest:
+    docopt
 License: MIT
 Encoding: UTF-8
 LazyData: true

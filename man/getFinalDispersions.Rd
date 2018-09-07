@@ -2,9 +2,18 @@
 % Please edit documentation in R/concensus-statistical-methods.R
 \name{getFinalDispersions}
 \alias{getFinalDispersions}
+\alias{getFinalDispersions.concensusDataSet}
+\alias{getFinalDispersions.concensusWorkflow}
+\alias{getFinalDispersions.default}
 \title{Estimate Negative Binomial dispersion paramteter taking into account batch effects}
 \usage{
 getFinalDispersions(x, ...)
+
+\method{getFinalDispersions}{default}(x, ...)
+
+\method{getFinalDispersions}{concensusWorkflow}(x, ...)
+
+\method{getFinalDispersions}{concensusDataSet}(x, ...)
 }
 \arguments{
 \item{x}{concensusWorkflow or concensusDataSet.}

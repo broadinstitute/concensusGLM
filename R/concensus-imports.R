@@ -1,7 +1,0 @@
-library(MASS)
-library(readr)
-library(magrittr)
-library(dplyr)
-library(ggplot2)
-library(ggthemes)
-library(broom)

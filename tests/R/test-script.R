@@ -27,29 +27,35 @@ concensus_data <- concensusDataSetFromFile(data_filename=file_inputs$data,
 
 # ConcensusGLM model
 # split on strain
-concensus_data <- scatter(concensus_data, 'strain')
+concensus_data1 <- scatter(concensus_data, 'strain')
 
 # get rough dispersions
-concensus_data <- getRoughDispersions(concensus_data)
+concensus_data1 <- getRoughDispersions(concensus_data1)
 
 # get batch effects
-concensus_data <- getBatchEffects(concensus_data)
+concensus_data1 <- getBatchEffects(concensus_data1)
 
 # get final dispersions
-concensus_data <- getFinalDispersions(concensus_data)
+concensus_data1 <- getFinalDispersions(concensus_data1)
 
 # resample untreated
 #concensus_data <- resampleNegative(concensus_data)
 
 # final models
-concensus_data <- getFinalModel(concensus_data)
+concensus_data1 <- getFinalModel(concensus_data1)
 
-concensus_data <- execute(concensus_data, locality='local', parallel=FALSE)
+concensus_data1 <- execute(concensus_data1, locality='local', parallel=FALSE)
 
 # gather back together
-concensus_data <- gather(concensus_data)
+concensus_data1 <- gather(concensus_data1)
 
-stopifnot('model_parameters' %in% names(concensus_data$pipelines[[1]]$data))
+stopifnot('model_parameters' %in% names(concensus_data1$pipelines[[1]]$data))
 
 # save
-write_concensusDataSet(concensus_data, paste0(concensus_data$pipelines[[1]]$data$output_prefix, '-concensus-data.rds'))
+write_concensusDataSet(concensus_data1, paste0(concensus_data1$pipelines[[1]]$data$output_prefix, '-concensus-data.rds'))
+
+# test analyze
+concensus_data2 <- analyze(concensus_data1)
+
+stopifnot('model_parameters' %in% names(concensus_data2$pipelines[[1]]$data))
+

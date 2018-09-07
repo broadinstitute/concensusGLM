@@ -108,7 +108,7 @@ concensusDataSetFromFile <- function(data_filename, annotation_filename=NULL, ou
 
   } else if ( ! 'well' %in% names(data_) ) {
 
-    stop('Column "well" or both "row" and "column" must be present in data file.')
+    stop('Column "well" or both "row" and "column" must be present in data file.\n')
 
   }
 
@@ -116,7 +116,7 @@ concensusDataSetFromFile <- function(data_filename, annotation_filename=NULL, ou
 
   if( ! ('negative_control' %in% original_columns) & is.null(controls) ) {
 
-    stop('Negative control column absent or controls not supplied.')
+    stop('Negative control column absent or controls not supplied.\n')
 
   }
 
@@ -151,17 +151,17 @@ concensusDataSetFromFile <- function(data_filename, annotation_filename=NULL, ou
 
   if ( ! is.null(annotation_filename) ) {
 
-    if ( length(intersect(names(data_), names(annotations))) == 0 ) stop('No columns in common between data and annotations')
+    if ( length(intersect(names(data_), names(annotations))) == 0 ) stop('No columns in common between data and annotations.\n')
 
-    data_ <- data_ %>% inner_join(annotations)
+    data_ <- data_ %>% left_join(annotations)
 
   }
 
   if ( ! is.null(controls) ) {
 
-    if ( ! 'negative' %in% names(controls) ) stop('List of controls must include an element named "negative"')
+    if ( ! 'negative' %in% names(controls) ) stop('List of controls must include an element named "negative".\n')
 
-    println('Assigning negative controls based on compound matching " ', controls$negative, '"')
+    println('Assigning negative controls based on compound matching "', controls$negative, '"')
     data_ <- data_ %>%
       dplyr::mutate(negative_control=grepl(controls$negative, compound))
 
@@ -175,8 +175,10 @@ concensusDataSetFromFile <- function(data_filename, annotation_filename=NULL, ou
 
     # check at least some negative controls are present
     n_negative_controls <- sum(getElement(data_, 'negative_control'))
-    if ( n_negative_controls  < 2 )
-      stop('Not enough negative controls. Only', n_negative_controls, 'present; you need at least 2.')
+    if ( n_negative_controls  < 2 ){
+
+      stop('Not enough negative controls. Only ', n_negative_controls, 'present; you need at least 2.\n')
+    }
 
   }
 

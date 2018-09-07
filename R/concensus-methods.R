@@ -9,9 +9,11 @@
 #' @export
 clean <- function(x, ...) UseMethod('clean')
 
+#' @rdname clean
 #' @export
 clean.default <- function(x, ...) stop('Can\'t clean', class(x), '\n')
 
+#' @rdname clean
 #' @importFrom magrittr %>%
 #' @export
 clean.data.frame <- function(x, threshold=1000, ...) {
