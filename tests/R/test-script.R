@@ -53,6 +53,8 @@ stopifnot('model_parameters' %in% names(concensus_data1$pipelines[[1]]$data))
 
 # save
 write_concensusDataSet(concensus_data1, paste0(concensus_data1$pipelines[[1]]$data$output_prefix, '-concensus-data.rds'))
+write_concensusDataSet(concensus_data1, paste0(concensus_data1$pipelines[[1]]$data$output_prefix, '-concensus-data.rds'),
+                       output_matrix=TRUE)
 
 # test analyze
 concensus_data2 <- analyze(concensus_data1)

@@ -150,9 +150,126 @@ execute.concensusWorkflow <- function(x, locality='local', parallel=FALSE, clobb
 #' \code{workflows} package.
 #' @param x ConcensusDataSet.
 #' @param filename Character. Where to save.
+#' @param input_csv Character. Write.
+#' @param output_csv Character. Where to save.
+#' @param output_matrix Logical. Save a matrix of strains and conditions. Make sure concentrations (if used for
+#' final fit) are common across all compounds or this will make a mess.
 #' @param ... Other arguments passed to \code{write_workflow}.
 #' @seealso \link{saveRDS}, \link{write_workflow}
 #' @export
-write_concensusDataSet <- function(x, filename, clean=TRUE, ...)
+write_concensusDataSet <- function(x, filename,
+                                   clean=TRUE,
+                                   input_csv=TRUE, output_csv=TRUE, output_matrix=FALSE,
+                                   ...){
+
   workflows::write_workflow(structure(x, class='workflow'), file=filename, clean=TRUE, ...)
+
+  filename_stub <- strsplit(filename, '.', fixed=TRUE)[[1]]
+  filename_stub <- paste(filename_stub[1:(length(filename_stub) - 1)], collapse='.')
+  write_plaintext(x, filename=filename_stub, input_csv=input_csv, output_csv=output_csv, output_matrix=output_matrix)
+
+
+}
+
+#' @title Write ConcensusGLM data as plain text
+#' @description Write ConcensusGLM data as plain text
+#' @param x concensusWorkflow
+#' @param input_csv Character. Write.
+#' @param output_csv Character. Where to save.
+#' @param output_matrix Logical. Save a matrix of strains and conditions. Make sure concentrations (if used for
+#' final fit) are common across all compounds or this will make a mess.
+#' @param ... Other arguments.
+#' @export
+write_plaintext <- function(x, ...) UseMethod('write_plaintext')
+
+#' @rdname write_plaintext
+#' @export
+write_plaintext.default <- function(x, ...) stop('Can\'t write_plaintext', class(x), '\n')
+
+#' @rdname write_plaintext
+#' @importFrom magrittr %>%
+#' @export
+write_plaintext.concensusWorkflow <- function(x, filename,
+                                             input_csv=TRUE, output_csv=TRUE,
+                                             output_matrix=TRUE,
+                                             ...) {
+
+  if ( input_csv ) {
+
+    input_data <- x$pipelines[[1]]$data$data
+
+    this_filename <- paste(filename, 'cleaned-input', 'csv', sep='.')
+
+    println('Writing cleaned input data as', this_filename)
+    readr::write_csv(dplyr::filter(input_data, !grepl('^pseudo_', strain)),
+                     this_filename)
+
+    if ( length(grep('^pseudo', get_unique_values(input_data, 'strain'))) ) {
+
+      this_filename <- paste(filename, 'cleaned-input-pseudostrains', 'csv', sep='.')
+
+      println('Writing pseudostrain input data as', this_filename)
+      readr::write_csv(dplyr::filter(input_data, grepl('^pseudo_', strain)),
+                       this_filename)
+
+    }
+
+  }
+
+
+  if ( output_csv ) {
+
+    if ( ! 'model_parameters' %in% names(x$pipelines[[1]]$data) )
+      stop('Analysis not complete; can\'t write inference CSV' )
+
+    output_data <- x$pipelines[[1]]$data$model_parameters
+
+    this_filename <- paste(filename, 'output', 'csv', sep='.')
+
+    println('Writing inference output data as', this_filename)
+    readr::write_csv(dplyr::filter(output_data, !grepl('^pseudo_', strain)),
+                     this_filename)
+
+    if ( length(grep('^pseudostrain_', get_unique_values(output_data, 'strain'))) > 0 ) {
+
+      this_filename <- paste(filename, 'output-pseudostrains', 'csv', sep='.')
+
+      println('Writing pseudostrain output data as', this_filename)
+      readr::write_csv(dplyr::filter(output_data, grepl('^pseudostrain_', strain)),
+                       this_filename)
+
+    }
+
+  }
+
+  if ( output_matrix ) {
+
+    if ( ! 'model_parameters' %in% names(x$pipelines[[1]]$data) )
+      stop('Analysis not complete; can\'t write inference matrix')
+
+    output_data <- reshape2::dcast(x$pipelines[[1]]$data$model_parameters,
+                                   strain ~ condition_group,  # smooths out conc inconsistencies
+                                   value.var='l2fc',
+                                   fun.aggregate=mean)  # not ideal but prevents erroring
+
+    this_filename <- paste(filename, 'output-matrix', 'csv', sep='.')
+
+    println('Writing inference output matrix as', this_filename)
+    readr::write_csv(dplyr::filter(output_data, !grepl('^pseudostrain_', strain)),
+                     this_filename)
+
+    if ( length(grep('^pseudostrain_', get_unique_values(output_data, 'strain'))) > 0 ) {
+
+      this_filename <- paste(filename, 'output-matrix-pseudostrains', 'csv', sep='.')
+
+      println('Writing pseudostrain output data as', this_filename)
+      readr::write_csv(dplyr::filter(output_data, grepl('^pseudostrain_', strain)),
+                       this_filename)
+
+    }
+
+  }
+
+}
+
 

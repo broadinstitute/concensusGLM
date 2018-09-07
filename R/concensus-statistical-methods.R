@@ -306,7 +306,8 @@ getFinalModel.concensusDataSet <- function(x, conditions=c('compound', 'concentr
   println('Reference level is', negative_level)
   println('Dispersion is', signif(nb_dispersion, 2))
   println('Fitting Negative Binomial GLM for',
-          x$data %>% dplyr::filter(!negative_control) %>% get_unique_values('condition_group', length), 'conditions')
+          x$data %>% dplyr::filter(!negative_control) %>% get_unique_values('condition_group', length),
+          'conditions as defined', pyjoin(conditions, ' + '))
 
   x$model_parameters <- x$data %>%
     dplyr::filter(!negative_control) %>%
@@ -317,7 +318,10 @@ getFinalModel.concensusDataSet <- function(x, conditions=c('compound', 'concentr
                      dplyr::mutate(condition_group=factor(condition_group) %>% relevel(ref=negative_level)),
                    y=FALSE) %>%
                  broom::tidy() %>%
-                 dplyr::mutate(p.value=as.numeric(p.value))) ) #%except% data.frame(NULL))
+                 dplyr::mutate(p.value=as.numeric(p.value),
+                               lfc=estimate,
+                               l2fc=estimate / log(2),
+                               std.error_log2=std.error / log(2))) ) #%except% data.frame(NULL))
 
   intercepts <- negative_controls %>%
     dplyr::group_by_(.dots=c(grouping)) %>%
