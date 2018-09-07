@@ -130,15 +130,21 @@ gather.concensusWorkflow <- function(x, ...) {
 #' @title Execute concensusWorkflow
 #' @description Execute concensusWorkflow analysis pipeline.
 #' @param x concensusWorkflow.
+#' @param locality Character. \code{"local"} for local machine (the default) or \code{"sge"} for GridEngine.
+#' @param parallel Logical. Run in multicore parallel.
+#' @param clobber Logical. If \code{TRUE}, start from beginning of workflow; if \code{FALSE}, start from last built target.
+#' @param submit_script Character. If \code{locality="sge"}, path to template SGE script
 #' @param ... Other arguments passed to \code{workflows::execute}.
 #' @return Executed concensusWorkflow
 #' @seealso \link{execute}
 #' @export
-execute.concensusWorkflow <- function(x, locality='local', parallel=FALSE, clobber=FALSE, ...) {
+execute.concensusWorkflow <- function(x, locality='local', parallel=FALSE, clobber=FALSE,
+                                      submit_script=file.path('exec/sge-template.sh'), ...) {
 
   class(x) <- 'workflow'
 
-  new_concensus_workflow <- structure(workflows::execute(x, locality=locality, parallel=parallel, clobber=clobber, ...),
+  new_concensus_workflow <- structure(workflows::execute(x, locality=locality, parallel=parallel, clobber=clobber,
+                                                         submit_script=submit_script, ...),
                                       class=c('concensusWorkflow', 'workflow'))
 
   return ( new_concensus_workflow )
