@@ -56,7 +56,7 @@ newConcensusDataSet <- function(checkpoint=FALSE, working_directory='.', load_ch
 #' (recommended). Any given condition should have at least 2 replicates of some kind. If "row" and "column"
 #' are present but not "well", then well is constructed by concatenating "row" and "column".
 #'
-#' Firstly, thsi function, loads a CSV from \code{data_filename}. This may take some time if it is a large file. It then checks
+#' Firstly, this function loads a CSV from \code{data_filename}. This may take some time if it is a large file. It then checks
 #' that the minimum headers are present.
 #'
 #' It then checks for either a \code{negative_control} column or a list of control compounds supplied to \code{controls} argument.
@@ -68,6 +68,7 @@ newConcensusDataSet <- function(checkpoint=FALSE, working_directory='.', load_ch
 #'
 #' If defined, annotations (like experimental meta-data) are loaded from \code{annotation_filename}. This CSV file needs a
 #' column name in common with \code{data_filename} (case sensitive) since the next step is a join on the shared columns.
+#' Also, every observation in the input data that you want to keep must be annotated.
 #'
 #' Finally, it adds a \code{negative_control} column if necessary and a \code{positive_control} column if defined, and checks
 #' that there are at least 2 negative control observations.
@@ -82,7 +83,7 @@ newConcensusDataSet <- function(checkpoint=FALSE, working_directory='.', load_ch
 #' @param test Logical. Run in test mode? If so, only reads the first 5 million lines of \code{data_filename}.
 #' @param checkpoint Logical. Save intermediate results as checkpoints?
 #' @param threshold Numeric. Strains below this total count threshold will be discarded. Default \code{1000}.
-#' Plates below 1000 x \code{threshold} will be discarded.
+#' Plates below 1000 x \code{threshold} will be discarded. Set to \code{0} to skip this.
 #' @param spike_in Character. A regular expression to match spike-in controls.
 #' @param pseudostrains Logical. Make pseudostrains such as "total", which is the sum of all non-spike-ins.
 #' @return list of class "concensusDataSet"
@@ -143,7 +144,7 @@ concensusDataSetFromFile <- function(data_filename, annotation_filename=NULL, ou
   if ( ! is.null(annotation_filename) ) {
 
     println('Loading annotations from', annotation_filename, '...')
-    annotations <- read_csv(annotation_filename)
+    annotations <- readr::read_csv(annotation_filename)
 
   }
 
@@ -151,9 +152,9 @@ concensusDataSetFromFile <- function(data_filename, annotation_filename=NULL, ou
 
   if ( ! is.null(annotation_filename) ) {
 
-    if ( length(intersect(names(data_), names(annotations))) == 0 ) stop('No columns in common between data and annotations.\n')
+    if ( length(intersect(names(data_), annotation_columns)) == 0 ) stop('No columns in common between data and annotations.\n')
 
-    data_ <- data_ %>% left_join(annotations)
+    data_ <- data_ %>% dplyr::inner_join(annotations)
 
   }
 

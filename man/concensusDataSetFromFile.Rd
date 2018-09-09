@@ -27,7 +27,7 @@ matches.}
 \item{checkpoint}{Logical. Save intermediate results as checkpoints?}
 
 \item{threshold}{Numeric. Strains below this total count threshold will be discarded. Default \code{1000}.
-Plates below 1000 x \code{threshold} will be discarded.}
+Plates below 1000 x \code{threshold} will be discarded. Set to \code{0} to skip this.}
 
 \item{spike_in}{Character. A regular expression to match spike-in controls.}
 
@@ -50,7 +50,7 @@ samples; "id" refers to sequencing (technical) replicates (if any) and "plate_na
 (recommended). Any given condition should have at least 2 replicates of some kind. If "row" and "column"
 are present but not "well", then well is constructed by concatenating "row" and "column".
 
-Firstly, thsi function, loads a CSV from \code{data_filename}. This may take some time if it is a large file. It then checks
+Firstly, this function loads a CSV from \code{data_filename}. This may take some time if it is a large file. It then checks
 that the minimum headers are present.
 
 It then checks for either a \code{negative_control} column or a list of control compounds supplied to \code{controls} argument.
@@ -62,6 +62,7 @@ is the total counts per well of non-spike-in strains.
 
 If defined, annotations (like experimental meta-data) are loaded from \code{annotation_filename}. This CSV file needs a
 column name in common with \code{data_filename} (case sensitive) since the next step is a join on the shared columns.
+Also, every observation in the input data that you want to keep must be annotated.
 
 Finally, it adds a \code{negative_control} column if necessary and a \code{positive_control} column if defined, and checks
 that there are at least 2 negative control observations.

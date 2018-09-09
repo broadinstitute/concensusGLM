@@ -144,12 +144,13 @@ getBatchEffects.concensusDataSet <- function(x, grouping=c('compound', 'concentr
 
       println(be, pyjoin(missing_levels, ', '),
               'with no untreated wells; sampling', average_representation,
-              'wells as untreated')
+              'wells per missing factor as untreated...')
 
       untreated_data <- bind_rows(untreated_data,
                                   x$data %>%
-                                    dplyr::filter(!negative_control, !positive_control) %>%
+                                    dplyr::filter(!negative_control) %>%
                                     dplyr::filter_(paste0(be, '%in% c(\'', pyjoin(missing_levels, '\', \''), '\')')) %>%
+                                    dplyr::group_by_(.dots=be) %>%
                                     dplyr::sample_n(average_representation, replace=TRUE))
     }
 

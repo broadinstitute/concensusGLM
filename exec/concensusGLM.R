@@ -45,7 +45,7 @@ main <- function(cl_options) {
                             # parameters for using SGE
                             submit_script=cl_options$sge,
                             # sets memory reservation
-                            mem_multiplier=600,
+                            mem_multiplier=1000,
                             # conservative run time
                             run_time='8:00:00')
 
