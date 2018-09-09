@@ -11,6 +11,7 @@ Depends:
     future,
     MASS,
     methods,
+    magrittr,
     parallel,
     readr,
     workflows
