@@ -1,3 +1,5 @@
+[![Travis-CI Build Status](https://travis-ci.org/eachanjohnson/concensusGLM.svg?branch=master)](https://travis-ci.org/eachanjohnson/concensusGLM)
+
 # concensusGLM
 
 R package to facilitate microbial fitness inference (using Generalized Linear Models) from barcode counts based on the Negative Binomial (NB) distribution. 

@@ -1,4 +1,5 @@
 ^.*\.Rproj$
 ^\.Rproj\.user$
-tests\/screen3\..*
+tests/screen3.count_data.correct.dk-batch-corrected.csv
 tests\/processed/.*
+^\.travis\.yml$
