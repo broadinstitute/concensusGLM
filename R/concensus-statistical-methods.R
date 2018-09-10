@@ -186,6 +186,7 @@ getBatchEffects.concensusDataSet <- function(x, grouping=c('compound', 'concentr
 #' This method will find a dispersion value with and without taking into account \code{predicted_null_count}, saving both results to
 #' the columns of the \code{dispersion} attribute of \code{concensusDataSet}.
 #' @param x concensusWorkflow or concensusDataSet.
+#' @param max_rows Numeric. Maximum number of observations to use for MLE.
 #' @param ... Other arguments.
 #' @return concensusWorkflow or concensusDataSet with a new \code{small_model_dispersion} and a new
 #' \code{full_model_dispersion} column in the \code{dispersion} attribute.
@@ -210,7 +211,7 @@ getFinalDispersions.concensusWorkflow <- function(x, ...) {
 #' @rdname getFinalDispersions
 #' @importFrom magrittr %>%
 #' @export
-getFinalDispersions.concensusDataSet <- function(x, ...) {
+getFinalDispersions.concensusDataSet <- function(x, max_rows=10000, ...) {
 
   println('Getting final dispersions...')
 
@@ -219,7 +220,9 @@ getFinalDispersions.concensusDataSet <- function(x, ...) {
 
   #print(head(x$data))
 
-  untreated_data         <- x$data %>% dplyr::filter(negative_control)
+  untreated_data         <- x$data %>%
+    dplyr::filter(negative_control) %>%
+    dplyr::sample_n(min(max_rows, nrow(x$data)))
 
   small_model_dispersion_ <- estimate_nb_dispersion_mle(initial_guess=x$dispersion$rough_dispersion,
                                                         data=untreated_data,
