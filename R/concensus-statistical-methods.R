@@ -358,6 +358,7 @@ getFinalModel.concensusDataSet <- function(x, conditions=c('compound', 'concentr
 #' @param n_replicates Numeric.
 #' @param n_samples Numeric.
 #' @param prevalence Numeric. Positive controls (if present) are resampled at a frequency of \code{n_samples * 2 * prevalence}.
+#' @param positive_control Character. Pattern to assign positive controls on. Overrides any already-present positive control.
 #' @param ... Other arguments.
 #' @return concensusWorkflow or concensusDataSet.
 #' @export
@@ -380,9 +381,20 @@ resample.concensusWorkflow <- function(x, ...) {
 #' @rdname resample
 #' @importFrom magrittr %>%
 #' @export
-resample.concensusDataSet <- function(x, n_replicates=2, n_samples=10000, prevalence=0.5, ...) {
+resample.concensusDataSet <- function(x, n_replicates=2, n_samples=1000, prevalence=0.5,
+                                      positive_control.=NULL, ...) {
 
   negative_control_data <- x$data %>% dplyr::ungroup() %>% dplyr::filter(negative_control)
+
+  if ( ! is.null(positive_control.) ) {
+
+    println('Adding positive control matching pattern:', positive_control.)
+
+    x$data <- x$data %>% dplyr::ungroup() %>% dplyr::mutate(positive_control=grepl(positive_control., compound))
+
+
+
+  }
 
   println('Resampling', n_samples, 'from', nrow(negative_control_data), 'negative controls...')
   negative_control_data <- negative_control_data %>%
@@ -398,7 +410,8 @@ resample.concensusDataSet <- function(x, n_replicates=2, n_samples=10000, preval
     dplyr::mutate(compound='untreated', concentration=0) %>%
     dplyr::bind_rows(negative_control_data)
 
-  if ( 'positive_control' %in% names(x) & length(sum(x$data$positive_control)) > 0 ) {
+  if ( 'positive_control' %in% names(x$data) & length(sum(x$data$positive_control)) > 0 &
+       sum(x$data$positive_control) > 0) {
 
     positive_control_data <- x$data %>% dplyr::ungroup() %>% dplyr::filter(positive_control)
 
@@ -424,9 +437,12 @@ resample.concensusDataSet <- function(x, n_replicates=2, n_samples=10000, preval
 }
 
 #' @title Call hits based on p-value and resampled data
-#' @description Call hits based on p-value and resampled data.
-#' @details None.
+#' @description Call hits based on p-values and resampled data.
+#' @details Resampled data are used to calaulate FDRs at a sliding p-value cutoff.
 #' @param x concensusWorkflow or concensusDataSet.
+#' @param method Character. Only \code{"resampling"} is supported.
+#' @param false_disovery_rate. Numeric. The desired false discovery rate. Default \code{0.05}.
+#' @param prevalence Numeric. The expected or known prevalence. Used to construct a model dataset from resampled data.
 #' @param ... Other arguments.
 #' @return concensusWorkflow or concensusDataSet.
 #' @export
@@ -438,9 +454,9 @@ callHits.default <- function(x, ...) stop('Can\'t call hits on ', class(x))
 
 #' @rdname callHits
 #' @export
-callHits.concensusWorkflow <- function(x, ...) {
+callHits.concensusWorkflow <- function(x, resampled_x=NULL, ...) {
 
-  x <- workflows::delay(x, callHits, ...)
+  x <- workflows::delay(x, callHits, resampled_x=resampled_x, ...)
 
   return (x)
 
@@ -449,10 +465,45 @@ callHits.concensusWorkflow <- function(x, ...) {
 #' @rdname callHits
 #' @importFrom magrittr %>%
 #' @export
-callHits.concensusDataSet <- function(x, grouping=c('compound', 'concentration', 'strain'), ...) {
+callHits.concensusDataSet <- function(x, method='resampling', false_discovery_rate.=0.05,
+                                      prevalence=0.01, ...) {
 
-  println('Calling Hits')
+  stopifnot(!is.null(prevalence))
 
+  println('Calling hits for FDR of', false_discovery_rate., 'and prevalence of', prevalence)
+
+  if ( method != 'resampling' )
+    stop('Only the resampling hit calling method is currently implemented. You must provide resampled_x.\n')
+
+  p_cutoffs <- x$model_parameters %>%
+    dplyr::sample_n(min(1e4, length(x$model_parameters$p.value))) %>%
+    get_unique_values('p.value') %>%
+    c(0, 1, 1e-10, 0.01, 0.05) %>%
+    unique() %>% sort()
+
+  #poscon_conditions <- x$data %>% filter(grepl('^poscon__', condition.group)) %>% get_unique_values('condition.group')
+  x$resampled_roc_data <- x$resampled %>%
+    calculate_roc_table(positive_compound='^positive-control--',
+                        cutoff_column='p.value', cutoffs=p_cutoffs, prevalence=prevalence)
+
+  x$resampled_roc_summary <- x$resampled_roc_data %>%
+    dplyr::group_by(cutoff) %>%
+    calculate_roc_stats()
+
+  x$cutoffs <- x$resampled_roc_summary %>%
+    dplyr::mutate(fdr=false_discovery_rate.,
+                  below_fdr=false_discovery_rate <= false_discovery_rate.,
+                  is_max_cutoff=cutoff == max(cutoff[below_fdr]))
+
+  this_cutoff <- unlist(x$cutoffs[x$cutoffs$below_fdr & x$cutoffs$is_max_cutoff, 'cutoff'])
+
+  x$selected_cutoff <- x$cutoffs[x$cutoffs$below_fdr & x$cutoffs$is_max_cutoff, ]
+
+  println('Hits defined as p-value <', signif(this_cutoff, 1))
+
+  x$model_parameters <-  x$model_parameters %>%
+    dplyr::mutate(cutoff=this_cutoff,
+                  is_hit=p.value < cutoff)
 
   return ( x )
 

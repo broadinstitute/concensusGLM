@@ -99,7 +99,11 @@ scatter.concensusWorkflow <- function(x, by, ...) {
 
   class(x) <- 'workflow'
 
-  new_concensus_workflow <- structure(workflows::scatter(x, elements='data', by=by), class=c('concensusWorkflow', 'workflow'))
+  elements <- intersect(c('data', 'model_parameters', 'resampled'), names(x$pipelines[[1]]$data))
+
+  println("Chunking elements", pyjoin(elements, ', '), '...')
+
+  new_concensus_workflow <- structure(workflows::scatter(x, elements=elements, by=by), class=c('concensusWorkflow', 'workflow'))
 
   return ( new_concensus_workflow )
 
@@ -120,7 +124,10 @@ gather.concensusWorkflow <- function(x, ...) {
 
   new_concensus_workflow <- structure(workflows::gather(x, elements=c('data', 'mean_variance_relationship',
                                                                     'dispersion', 'batch_effect_model',
-                                                                    'model_parameters'), ...),
+                                                                    'model_parameters',
+                                                                    'resampled', 'selected_cutoff', 'cutoffs',
+                                                                    'resampled_roc_data',
+                                                                    'resampled_roc_summary'), ...),
                                       class=c('concensusWorkflow', 'workflow'))
 
   return ( new_concensus_workflow )
@@ -299,7 +306,7 @@ View_c.default <- function(x, ...) View(x, ...)
 #' @export
 View_c.concensusWorkflow <- function(x, scatter_n=1, element='data', limit_size=1000, ...) {
 
-  View_c(x$pipelines[[scatter_n]]$data, element, limit_size, ...)
+  View_c(x$pipelines[[scatter_n]]$data, element=element, limit_size=limit_size, ...)
 
 }
 
