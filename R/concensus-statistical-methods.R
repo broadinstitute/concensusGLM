@@ -350,3 +350,110 @@ getFinalModel.concensusDataSet <- function(x, conditions=c('compound', 'concentr
   return ( x )
 
 }
+
+#' @title Make fake data from resampled controls
+#' @description Make fake data from resampled controls.
+#' @details None.
+#' @param x concensusWorkflow or concensusDataSet.
+#' @param n_replicates Numeric.
+#' @param n_samples Numeric.
+#' @param prevalence Numeric. Positive controls (if present) are resampled at a frequency of \code{n_samples * 2 * prevalence}.
+#' @param ... Other arguments.
+#' @return concensusWorkflow or concensusDataSet.
+#' @export
+resample <- function(x, ...) UseMethod('resample')
+
+#' @rdname resample
+#' @export
+resample.default <- function(x, ...) stop('Can\'t resample ', class(x))
+
+#' @rdname resample
+#' @export
+resample.concensusWorkflow <- function(x, ...) {
+
+  x <- workflows::delay(x, resample, ...)
+
+  return (x)
+
+}
+
+#' @rdname resample
+#' @importFrom magrittr %>%
+#' @export
+resample.concensusDataSet <- function(x, n_replicates=2, n_samples=10000, prevalence=0.5, ...) {
+
+  negative_control_data <- x$data %>% dplyr::ungroup() %>% dplyr::filter(negative_control)
+
+  println('Resampling', n_samples, 'from', nrow(negative_control_data), 'negative controls...')
+  negative_control_data <- negative_control_data %>%
+    dplyr::sample_n(n_samples, replace=n_samples > length(count)) %>%
+    dplyr::mutate(compound=sample(rep(paste('negative-control', seq_len(length(count) / n_replicates), sep='--'), n_replicates)),
+                  concentration=1,
+                  negative_control=FALSE,
+                  positive_control=FALSE)
+
+  x$resampled <- x$data %>%
+    dplyr::ungroup() %>%
+    dplyr::filter(negative_control) %>%
+    dplyr::mutate(compound='untreated', concentration=0) %>%
+    dplyr::bind_rows(negative_control_data)
+
+  if ( 'positive_control' %in% names(x) & length(sum(x$data$positive_control)) > 0 ) {
+
+    positive_control_data <- x$data %>% dplyr::ungroup() %>% dplyr::filter(positive_control)
+
+    println('Resampling', n_samples * 2 * prevalence, 'from', nrow(positive_control_data), 'postive controls')
+    positive_control_data %<>%
+      dplyr::group_by(strain, plate_name) %>%
+      dplyr::sample_n(n_samples * 2 * prevalence, replace=(n_samples * 2 * prevalence) > length(count)) %>%
+      dplyr::mutate(compound=sample(rep(paste('positive-control', seq_len(length(count) / n_replicates), sep='--'), n_replicates)),
+                    concentration=1,
+                    negative_control=FALSE,
+                    positive_control=FALSE)
+
+    x$resampled <- x$resampled %>%
+      dplyr::bind_rows(positive_control_data)
+
+  }
+
+  x$data <- x$resampled %>%
+    dplyr::mutate(condition_group=paste(compound, concentration, sep='__'))
+
+  return ( x )
+
+}
+
+#' @title Call hits based on p-value and resampled data
+#' @description Call hits based on p-value and resampled data.
+#' @details None.
+#' @param x concensusWorkflow or concensusDataSet.
+#' @param ... Other arguments.
+#' @return concensusWorkflow or concensusDataSet.
+#' @export
+callHits <- function(x, ...) UseMethod('callHits')
+
+#' @rdname callHits
+#' @export
+callHits.default <- function(x, ...) stop('Can\'t call hits on ', class(x))
+
+#' @rdname callHits
+#' @export
+callHits.concensusWorkflow <- function(x, ...) {
+
+  x <- workflows::delay(x, callHits, ...)
+
+  return (x)
+
+}
+
+#' @rdname callHits
+#' @importFrom magrittr %>%
+#' @export
+callHits.concensusDataSet <- function(x, grouping=c('compound', 'concentration', 'strain'), ...) {
+
+  println('Calling Hits')
+
+
+  return ( x )
+
+}
