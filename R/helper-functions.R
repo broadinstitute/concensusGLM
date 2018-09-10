@@ -250,5 +250,72 @@ trim_glm <- function(x, ...) {
 
 }
 
+#' @importFrom magrittr %>%
+calculate_roc_stats <- function(x) {
+
+  x <- x %>%
+    dplyr::summarize(n_positive=sum(condition_positive, na.rm=TRUE),
+                     n_negative=sum(condition_negative, na.rm=TRUE),
+                     n_tests=n(),
+
+                     prevalence=mean(condition_positive, na.rm=TRUE),
+
+                     n_called_positive=sum(called_positive, na.rm=TRUE),
+                     n_called_negative=sum(called_negative, na.rm=TRUE),
+
+                     n_false_positive=sum(false_positive, na.rm=TRUE),
+                     n_false_negative=sum(false_negative, na.rm=TRUE),
+                     n_true_positive=sum(true_positive, na.rm=TRUE),
+                     n_true_negative=sum(true_negative, na.rm=TRUE),
+
+                     true_positive_rate=sum(true_positive, na.rm=TRUE) / n_positive,
+                     false_positive_rate=sum(false_positive, na.rm=TRUE) / n_negative,
+                     true_negative_rate=sum(true_negative, na.rm=TRUE) / n_negative,
+                     false_negative_rate=sum(false_negative, na.rm=TRUE) / n_positive,
+
+                     accuracy=mean(correct, na.rm=TRUE),
+                     false_discovery_rate=sum(false_positive, na.rm=TRUE) / n_called_positive,
+                     positive_predictive_value=sum(true_positive, na.rm=TRUE) / n_called_positive,
+                     f1_score=2 / ((1 / true_positive_rate) + (1 / positive_predictive_value))) %>%
+    mutate(false_discovery_rate=ifelse(is.na(false_discovery_rate), 0, false_discovery_rate),
+           positive_predictive_value=ifelse(is.na(positive_predictive_value), 0, positive_predictive_value),
+           f1_score=ifelse(is.na(f1_score), 0, f1_score))
+
+  return ( x )
+}
+
+#' @importFrom magrittr %>%
+calculate_roc_table <- function(x, positive_compound, cutoff_column, cutoffs, prevalence) {
+
+  n_positives <- nrow(dplyr::filter(x, grepl(positive_compound, compound)))
+
+  n_negatives <- nrow(dplyr::filter(x, !grepl(positive_compound, compound)))
+
+  n_to_sample <- prevalence * n_negatives
+
+  sampled_positives <- x %>%
+    dplyr::filter(grepl(positive_compound, compound)) %>%
+    dplyr::ungroup() %>%
+    dplyr::sample_n(n_to_sample)
+
+  x2 <- x %>%
+    dplyr::filter(!grepl(positive_compound, compound))
+    dplyr::bind_rows(sampled_positives)
+
+  x <- x %>%
+    tidyr::crossing(cutoff=cutoffs) %>%
+    dplyr::mutate(condition_positive=grepl(positive_compound, compound),
+                  condition_negative=! condition_positive) %>%
+    dplyr::mutate_(.dots=c(called_positive=paste(cutoff_column, '<= cutoff'))) %>%
+    dplyr::mutate(called_negative=!called_positive,
+                  true_positive=condition_positive & called_positive,
+                  false_positive=condition_negative & called_positive,
+                  true_negative=condition_negative & called_negative,
+                  false_negative=condition_positive & called_negative,
+                  correct=true_positive | true_negative)
+
+  return ( x )
+
+}
 
 
