@@ -133,9 +133,12 @@ concensusDataSetFromFile <- function(data_filename, annotation_filename=NULL, ou
       dplyr::summarize(count=sum(count)) %>%
       dplyr::ungroup() %>%
       dplyr::mutate(strain='pseudostrain_total') %>%
-      dplyr::left_join(data_ %>% dplyr::ungroup() %>% dplyr::select(-count, -strain) %>% dplyr::distinct())
+      dplyr::left_join(data_ %>% dplyr::ungroup() %>% dplyr::select(-count, -strain) %>% dplyr::distinct()) %>%
+      dplyr::ungroup() %>%
+      dplyr::distinct()
 
     stopifnot(length(setdiff(names(pseudostrain_total), names(data_))) == 0)
+    stopifnot(nrow(pseudostrain_total) == nrow(data_ %>% dplyr::filter(strain == get_unique_values(data_, 'strain')[1])))
 
     data_ <- dplyr::bind_rows(data_, pseudostrain_total)
 

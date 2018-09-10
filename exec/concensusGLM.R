@@ -25,6 +25,8 @@ main <- function(cl_options) {
                                              annotation_filename=file_inputs$meta,
                                              output_path=dir_tree$top,
                                              controls=controls,
+                                             
+                                             pseudostrains = FALSE,
 
                                              # don't discard plates and strains in in interactive mode
                                              threshold=ifelse(cl_options[['no-count-threshold']], 0, 1000),
