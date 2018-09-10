@@ -13,12 +13,14 @@ getFinalDispersions(x, ...)
 
 \method{getFinalDispersions}{concensusWorkflow}(x, ...)
 
-\method{getFinalDispersions}{concensusDataSet}(x, ...)
+\method{getFinalDispersions}{concensusDataSet}(x, max_rows = 10000, ...)
 }
 \arguments{
 \item{x}{concensusWorkflow or concensusDataSet.}
 
 \item{...}{Other arguments.}
+
+\item{max_rows}{Numeric. Maximum number of observations to use for MLE.}
 }
 \value{
 concensusWorkflow or concensusDataSet with a new \code{small_model_dispersion} and a new

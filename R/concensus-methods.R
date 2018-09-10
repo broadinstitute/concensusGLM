@@ -278,4 +278,39 @@ write_plaintext.concensusWorkflow <- function(x, filename,
 
 }
 
+#' @title Invoke a Data Viewer for concensus objects
+#' @description Invoke a spreadsheet-style data viewer on a Concensus R object.
+#' @param x concensusWorkflow
+#' @param scatter_n Numeric. If \code{x} is a \code{concensusWorkflow} which has been scattered, use this chunk.
+#' @param element Character. Which element of \code{concensusDataset} to look at. Defaults to the input data, \code{"data"}.
+#' @param limit_size Numeric. Limit number of rows passed to \code{View}. For very large data, this can stop
+#' your RStudio session from crashing! Default \code{1000}.
+#' @param ... Other arguments.
+#' @seealso \link{View}
+#' @export
+View_c <- function(x, ...) UseMethod('View_c')
+
+#' @rdname write_plaintext
+#' @export
+View_c.default <- function(x, ...) View(x, ...)
+
+#' @rdname write_plaintext
+#' @importFrom magrittr %>%
+#' @export
+View_c.concensusWorkflow <- function(x, scatter_n=1, element='data', limit_size=1000, ...) {
+
+  View_c(x$pipelines[[scatter_n]]$data, element, limit_size, ...)
+
+}
+
+#' @rdname write_plaintext
+#' @importFrom magrittr %>%
+#' @export
+View_c.concensusDataSet <- function(x, element='data', limit_size=1000, ...) {
+
+  View(head(getElement(x, element), n=limit_size), title=element, ...)
+
+}
+
+
 
