@@ -165,9 +165,10 @@ getBatchEffects.concensusDataSet <- function(x, grouping=c('compound', 'concentr
   x$batch_effect_model <- glm(model_formula,
                               MASS::negative.binomial(1 / x$dispersion$rough_dispersion), untreated_data) %except% NA
 
-  if ( !is.na(x$batch_effect_model) &  !is.null(x$batch_effect_model) )
+  if ( !is.na(x$batch_effect_model) &  !is.null(x$batch_effect_model) ) {
     x$data <- x$data %>% dplyr::mutate(predicted_null_count=predict(x$batch_effect_model, ., type='response'))
-  else
+    x$batch_effect_model <- trim_glm(x$batch_effect_model)  # make sure this isn't gigantic!
+  } else
     x$data <- x$data %>% dplyr::mutate(predicted_null_count=1)
 
   return ( x )
@@ -222,7 +223,7 @@ getFinalDispersions.concensusDataSet <- function(x, max_rows=10000, ...) {
 
   untreated_data         <- x$data %>%
     dplyr::filter(negative_control) %>%
-    dplyr::sample_n(min(max_rows, nrow(x$data)))
+    dplyr::sample_n(min(max_rows, sum(x$data$negative_control)))
 
   small_model_dispersion_ <- estimate_nb_dispersion_mle(initial_guess=x$dispersion$rough_dispersion,
                                                         data=untreated_data,
@@ -325,7 +326,8 @@ getFinalModel.concensusDataSet <- function(x, conditions=c('compound', 'concentr
                  dplyr::mutate(p.value=as.numeric(p.value),
                                lfc=estimate,
                                l2fc=estimate / log(2),
-                               std.error_log2=std.error / log(2))) ) #%except% data.frame(NULL))
+                               std.error_log2=std.error / log(2),
+                               n_replicates=nrow(.))) ) #%except% data.frame(NULL))
 
   intercepts <- negative_controls %>%
     dplyr::group_by_(.dots=c(grouping)) %>%
@@ -358,6 +360,7 @@ getFinalModel.concensusDataSet <- function(x, conditions=c('compound', 'concentr
 #' @param n_replicates Numeric.
 #' @param n_samples Numeric.
 #' @param prevalence Numeric. Positive controls (if present) are resampled at a frequency of \code{n_samples * 2 * prevalence}.
+#' @param grouping Character vector. Grouping of wells.
 #' @param positive_control Character. Pattern to assign positive controls on. Overrides any already-present positive control.
 #' @param ... Other arguments.
 #' @return concensusWorkflow or concensusDataSet.
@@ -381,8 +384,11 @@ resample.concensusWorkflow <- function(x, ...) {
 #' @rdname resample
 #' @importFrom magrittr %>%
 #' @export
-resample.concensusDataSet <- function(x, n_replicates=2, n_samples=1000, prevalence=0.5,
+resample.concensusDataSet <- function(x, n_replicates=2, n_samples=10000, prevalence=0.5,
+                                      grouping=c('id', 'plate_name', 'well'),
                                       positive_control.=NULL, ...) {
+
+  if ( ! all(grouping %in% names(x$data)) ) stop('Grouping columns', pyjoin(grouping, ', '), 'must be present in data')
 
   negative_control_data <- x$data %>% dplyr::ungroup() %>% dplyr::filter(negative_control)
 
@@ -392,22 +398,58 @@ resample.concensusDataSet <- function(x, n_replicates=2, n_samples=1000, prevale
 
     x$data <- x$data %>% dplyr::ungroup() %>% dplyr::mutate(positive_control=grepl(positive_control., compound))
 
-
-
   }
 
-  println('Resampling', n_samples, 'from', nrow(negative_control_data), 'negative controls...')
-  negative_control_data <- negative_control_data %>%
-    dplyr::sample_n(n_samples, replace=n_samples > length(count)) %>%
-    dplyr::mutate(compound=sample(rep(paste('negative-control', seq_len(length(count) / n_replicates), sep='--'), n_replicates)),
+  unique_groupings <- negative_control_data %>% dplyr::select_(.dots=grouping) %>% distinct()
+
+  println('Resampling', n_samples, 'from', nrow(unique_groupings), 'negative control wells...')
+  random_sample_of_groupings <- unique_groupings %>%
+    sample_n(n_samples, replace=n_samples > nrow(unique_groupings)) %>%
+    dplyr::mutate(compound=sample(rep(paste('negative-control', seq_len(n() / n_replicates), sep='--'), n_replicates)),
                   concentration=1,
                   negative_control=FALSE,
                   positive_control=FALSE)
 
-  x$resampled <- x$data %>%
-    dplyr::ungroup() %>%
-    dplyr::filter(negative_control) %>%
-    dplyr::mutate(compound='untreated', concentration=0) %>%
+  resampled_negative_control_data <- negative_control_data %>%
+    dplyr::inner_join(random_sample_of_groupings) %>%
+    dplyr::select(-compound, -concentration, -negative_control, -positive_control)
+
+  println('Resampling', ceiling(n_samples / 5), 'from', nrow(unique_groupings), 'as reference control wells...')
+  random_sample_of_groupings_ref <- unique_groupings %>%
+    sample_n(ceiling(n_samples / 5), replace=ceiling(n_samples / 5) > nrow(unique_groupings))
+
+  unique_representation_in_ref <- lapply(grouping,
+                                         function(x_) unique(getElement(random_sample_of_groupings_ref, x_)))
+  unique_representation <- sapply(grouping,
+                                  function(x_) all(getElement(resampled_negative_control_data, x_) %in%
+                                                     getElement(unique_representation_in_ref, x_)))
+
+  counter <- 0
+
+  while ( !all(unique_representation) & counter < 100 ) {
+
+    println('Missing levels in', pyjoin(groupings[which(!unique_representation)], ', '), '; resampling again')
+
+    random_sample_of_groupings_ref <- unique_groupings %>%
+      sample_n(ceiling(n_samples / 5), replace=ceiling(n_samples / 5) > nrow(unique_groupings))
+
+    unique_representation_in_ref <- lapply(grouping,
+                                           function(x_) unique(getElement(random_sample_of_groupings_ref, x_)))
+    unique_representation <- sapply(grouping,
+                                    function(x_) all(getElement(resampled_negative_control_data, x_) %in%
+                                                       getElement(unique_representation_in_ref, x_)))
+
+    counter <- counter + 1
+
+  }
+
+  random_sample_of_groupings_ref <- random_sample_of_groupings_ref %>%
+    dplyr::mutate(compound='untreated',
+                  concentration=0,
+                  negative_control=TRUE,
+                  positive_control=FALSE)
+
+  x$resampled <- random_sample_of_groupings_ref %>%
     dplyr::bind_rows(negative_control_data)
 
   if ( 'positive_control' %in% names(x$data) & length(sum(x$data$positive_control)) > 0 &
@@ -419,7 +461,7 @@ resample.concensusDataSet <- function(x, n_replicates=2, n_samples=1000, prevale
     positive_control_data %<>%
       dplyr::group_by(strain, plate_name) %>%
       dplyr::sample_n(n_samples * 2 * prevalence, replace=(n_samples * 2 * prevalence) > length(count)) %>%
-      dplyr::mutate(compound=sample(rep(paste('positive-control', seq_len(length(count) / n_replicates), sep='--'), n_replicates)),
+      dplyr::mutate(compound=sample(rep(paste('positive-control', seq_len(n() / n_replicates), sep='--'), n_replicates)),
                     concentration=1,
                     negative_control=FALSE,
                     positive_control=FALSE)

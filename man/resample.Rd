@@ -13,8 +13,9 @@ resample(x, ...)
 
 \method{resample}{concensusWorkflow}(x, ...)
 
-\method{resample}{concensusDataSet}(x, n_replicates = 2, n_samples = 1000,
-  prevalence = 0.5, positive_control. = NULL, ...)
+\method{resample}{concensusDataSet}(x, n_replicates = 2, n_samples = 10000,
+  prevalence = 0.5, grouping = c("id", "plate_name", "well"),
+  positive_control. = NULL, ...)
 }
 \arguments{
 \item{x}{concensusWorkflow or concensusDataSet.}
