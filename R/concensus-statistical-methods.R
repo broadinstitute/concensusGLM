@@ -443,14 +443,16 @@ resample.concensusDataSet <- function(x, n_replicates=2, n_samples=10000, preval
 
   }
 
-  random_sample_of_groupings_ref <- random_sample_of_groupings_ref %>%
+  random_sample_of_groupings_ref <- negative_control_data %>%
+    dplyr::inner_join(random_sample_of_groupings_ref) %>%
+    dplyr::select(-compound, -concentration, -negative_control, -positive_control) %>%
     dplyr::mutate(compound='untreated',
                   concentration=0,
                   negative_control=TRUE,
                   positive_control=FALSE)
 
   x$resampled <- random_sample_of_groupings_ref %>%
-    dplyr::bind_rows(negative_control_data)
+    dplyr::bind_rows(resampled_negative_control_data)
 
   if ( 'positive_control' %in% names(x$data) & length(sum(x$data$positive_control)) > 0 &
        sum(x$data$positive_control) > 0) {
