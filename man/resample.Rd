@@ -28,6 +28,8 @@ resample(x, ...)
 
 \item{prevalence}{Numeric. Positive controls (if present) are resampled at a frequency of \code{n_samples * 2 * prevalence}.}
 
+\item{grouping}{Character vector. Grouping of wells.}
+
 \item{positive_control}{Character. Pattern to assign positive controls on. Overrides any already-present positive control.}
 }
 \value{

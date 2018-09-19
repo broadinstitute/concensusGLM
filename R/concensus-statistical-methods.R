@@ -404,19 +404,19 @@ resample.concensusDataSet <- function(x, n_replicates=2, n_samples=10000, preval
 
   println('Resampling', n_samples, 'from', nrow(unique_groupings), 'negative control wells...')
   random_sample_of_groupings <- unique_groupings %>%
-    sample_n(n_samples, replace=n_samples > nrow(unique_groupings)) %>%
-    dplyr::mutate(compound=sample(rep(paste('negative-control', seq_len(n() / n_replicates), sep='--'), n_replicates)),
-                  concentration=1,
+    dplyr::sample_n(n_samples, replace=n_samples > nrow(unique_groupings)) %>%
+    dplyr::mutate(compound=sample(rep(paste('negative-control', seq_len(n() / n_replicates), sep='--'), n_replicates)))
+
+  resampled_negative_control_data <- negative_control_data %>%
+    dplyr::select(-compound) %>%
+    dplyr::inner_join(random_sample_of_groupings) %>%
+    dplyr::mutate(concentration=1,
                   negative_control=FALSE,
                   positive_control=FALSE)
 
-  resampled_negative_control_data <- negative_control_data %>%
-    dplyr::inner_join(random_sample_of_groupings) %>%
-    dplyr::select(-compound, -concentration, -negative_control, -positive_control)
-
   println('Resampling', ceiling(n_samples / 5), 'from', nrow(unique_groupings), 'as reference control wells...')
   random_sample_of_groupings_ref <- unique_groupings %>%
-    sample_n(ceiling(n_samples / 5), replace=ceiling(n_samples / 5) > nrow(unique_groupings))
+    dplyr::sample_n(ceiling(n_samples / 5), replace=ceiling(n_samples / 5) > nrow(unique_groupings))
 
   unique_representation_in_ref <- lapply(grouping,
                                          function(x_) unique(getElement(random_sample_of_groupings_ref, x_)))
@@ -426,26 +426,26 @@ resample.concensusDataSet <- function(x, n_replicates=2, n_samples=10000, preval
 
   counter <- 0
 
-  while ( !all(unique_representation) & counter < 100 ) {
-
-    println('Missing levels in', pyjoin(groupings[which(!unique_representation)], ', '), '; resampling again')
-
-    random_sample_of_groupings_ref <- unique_groupings %>%
-      sample_n(ceiling(n_samples / 5), replace=ceiling(n_samples / 5) > nrow(unique_groupings))
-
-    unique_representation_in_ref <- lapply(grouping,
-                                           function(x_) unique(getElement(random_sample_of_groupings_ref, x_)))
-    unique_representation <- sapply(grouping,
-                                    function(x_) all(getElement(resampled_negative_control_data, x_) %in%
-                                                       getElement(unique_representation_in_ref, x_)))
-
-    counter <- counter + 1
-
-  }
+#   while ( !all(unique_representation) & counter < 100 ) {
+#
+#     println('Missing levels in', pyjoin(grouping[which(!unique_representation)], ', '), '; resampling again')
+#
+#     random_sample_of_groupings_ref <- unique_groupings %>%
+#       sample_n(ceiling(n_samples / 5), replace=ceiling(n_samples / 5) > nrow(unique_groupings))
+#
+#     unique_representation_in_ref <- lapply(grouping,
+#                                            function(x_) unique(getElement(random_sample_of_groupings_ref, x_)))
+#     unique_representation <- sapply(grouping,
+#                                     function(x_) all(getElement(resampled_negative_control_data, x_) %in%
+#                                                        getElement(unique_representation_in_ref, x_)))
+#
+#     counter <- counter + 1
+#
+#   }
 
   random_sample_of_groupings_ref <- negative_control_data %>%
+    #dplyr::select(-compound, -concentration, -negative_control, -positive_control) %>%
     dplyr::inner_join(random_sample_of_groupings_ref) %>%
-    dplyr::select(-compound, -concentration, -negative_control, -positive_control) %>%
     dplyr::mutate(compound='untreated',
                   concentration=0,
                   negative_control=TRUE,
