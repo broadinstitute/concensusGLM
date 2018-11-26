@@ -10,7 +10,7 @@ clean(x, ...)
 
 \method{clean}{default}(x, ...)
 
-\method{clean}{data.frame}(x, threshold = 1000, ...)
+\method{clean}{data.frame}(x, threshold = 1000, plate_fraction = 0.25, ...)
 }
 \arguments{
 \item{x}{data.frame to clean.}
