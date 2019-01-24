@@ -6,7 +6,7 @@
 \usage{
 concensusDataSetFromFile(data_filename, annotation_filename = NULL,
   output_path = ".", controls = NULL, rename = NULL, test = FALSE,
-  checkpoint = FALSE, threshold = 1000, spike_in = "^intcon",
+  checkpoint = FALSE, threshold = 100, spike_in = "^intcon",
   pseudostrains = TRUE, ...)
 }
 \arguments{

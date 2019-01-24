@@ -16,7 +16,7 @@ clean.default <- function(x, ...) stop('Can\'t clean', class(x), '\n')
 #' @rdname clean
 #' @importFrom magrittr %>%
 #' @export
-clean.data.frame <- function(x, threshold=1000, plate_fraction=0.25, ...) {
+clean.data.frame <- function(x, threshold=100, plate_fraction=0.6, ...) {
 
   n_plates <- length(get_unique_values(x, 'plate_name'))
 
@@ -27,9 +27,9 @@ clean.data.frame <- function(x, threshold=1000, plate_fraction=0.25, ...) {
     dplyr::ungroup() %>%
     dplyr::group_by(strain) %>%
     dplyr::summarize(n_plates_absent=sum(sum_count <= threshold),
-              sum_count=mean(sum_count[sum_count <= threshold])) %>%
+                     mean_sum_count=mean(sum_count[sum_count <= threshold])) %>%
     dplyr::arrange(n_plates_absent) %>%
-    dplyr::filter(n_plates_absent > n_plates / 2)
+    dplyr::filter(n_plates_absent > n_plates * plate_fraction)
 
   unused_strains <- unused_strains0 %>% get_unique_values('strain')
 

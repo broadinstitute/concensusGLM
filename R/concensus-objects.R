@@ -93,14 +93,13 @@ newConcensusDataSet <- function(checkpoint=FALSE, working_directory='.', load_ch
 #' @export
 concensusDataSetFromFile <- function(data_filename, annotation_filename=NULL, output_path='.',
                                      controls=NULL, rename=NULL, test=FALSE, checkpoint=FALSE,
-                                     threshold=1000, spike_in='^intcon',
+                                     threshold=100, spike_in='^intcon',
                                      pseudostrains=TRUE,
                                      ...) {
 
   println('Loading dataset from', data_filename, '...')
-  if ( test ) data_ <- readr::read_csv(data_filename, progress=TRUE, n_max=5e6)
-  else        data_ <- readr::read_csv(data_filename, progress=TRUE)
-
+  if ( test ) data_ <- readr::read_csv(data_filename, progress=TRUE, n_max=5e6, col_types=readr::cols(concentration=readr::col_double()))
+  else        data_ <- readr::read_csv(data_filename, progress=TRUE, col_types=readr::cols(concentration=readr::col_double()))
   check_headers(data_, essential_headers=c('compound', 'concentration', 'strain', 'plate_name', 'count'))
 
   if ( ! 'well' %in% names(data_) & all(c('row', 'column') %in% names(data_)) ) {
