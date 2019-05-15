@@ -93,15 +93,14 @@ newConcensusDataSet <- function(checkpoint=FALSE, working_directory='.', load_ch
 #' @export
 concensusDataSetFromFile <- function(data_filename, annotation_filename=NULL, output_path='.',
                                      controls=NULL, rename=NULL, test=FALSE, checkpoint=FALSE,
-                                     threshold=1000, spike_in='^intcon',
+                                     threshold=100, spike_in='^intcon',
                                      pseudostrains=TRUE,
                                      ...) {
 
   println('Loading dataset from', data_filename, '...')
-  if ( test ) data_ <- readr::read_csv(data_filename, progress=TRUE, n_max=5e6)
-  else        data_ <- readr::read_csv(data_filename, progress=TRUE)
-
-  check_headers(data_, essential_headers=c('id', 'compound', 'concentration', 'strain', 'plate_name', 'count'))
+  if ( test ) data_ <- readr::read_csv(data_filename, progress=TRUE, n_max=5e6, col_types=readr::cols(concentration=readr::col_double()))
+  else        data_ <- readr::read_csv(data_filename, progress=TRUE, col_types=readr::cols(concentration=readr::col_double()))
+  check_headers(data_, essential_headers=c('compound', 'concentration', 'strain', 'plate_name', 'count'))
 
   if ( ! 'well' %in% names(data_) & all(c('row', 'column') %in% names(data_)) ) {
 
@@ -155,9 +154,11 @@ concensusDataSetFromFile <- function(data_filename, annotation_filename=NULL, ou
 
   if ( ! is.null(annotation_filename) ) {
 
-    if ( length(intersect(names(data_), annotation_columns)) == 0 ) stop('No columns in common between data and annotations.\n')
+    intersection <- intersect(names(data_), annotation_columns)
 
-    data_ <- data_ %>% dplyr::inner_join(annotations)
+    if ( length(intersection) == 0 ) stop('No columns in common between data and annotations.\n')
+
+    data_ <- data_ %>% dplyr::inner_join(annotations, by=intersection)
 
   }
 
@@ -171,15 +172,22 @@ concensusDataSetFromFile <- function(data_filename, annotation_filename=NULL, ou
 
     if ( 'positive' %in% names(controls) ) {
 
-      println('Assigning positive controls based on compound matching "', controls$positive, '"')
-      data_ <- data_ %>%
-        dplyr::mutate(positive_control=grepl(controls$positive, compound))
+      if ( ! is.null(controls$positive) ) {
+
+        println('Assigning positive controls based on compound matching "', controls$positive, '"')
+        data_ <- data_ %>%
+          dplyr::mutate(positive_control=grepl(controls$positive, compound))
+
+      }
 
     }
 
     # check at least some negative controls are present
     n_negative_controls <- sum(getElement(data_, 'negative_control'))
-    if ( n_negative_controls  < 2 ){
+    n_positive_controls <- sum(getElement(data_, 'positive_control'))
+    println('There are', n_negative_controls, 'negative controls')
+    println('There are', n_positive_controls, 'positive controls')
+    if ( n_negative_controls  < 2 ) {
 
       stop('Not enough negative controls. Only ', n_negative_controls, 'present; you need at least 2.\n')
     }

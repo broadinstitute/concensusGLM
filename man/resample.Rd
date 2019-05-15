@@ -13,8 +13,9 @@ resample(x, ...)
 
 \method{resample}{concensusWorkflow}(x, ...)
 
-\method{resample}{concensusDataSet}(x, n_replicates = 2, n_samples = 1000,
-  prevalence = 0.5, positive_control. = NULL, ...)
+\method{resample}{concensusDataSet}(x, n_replicates = 2, n_samples = 10000,
+  prevalence = 0.5, grouping = c("id", "plate_name", "well"),
+  positive_control. = NULL, ...)
 }
 \arguments{
 \item{x}{concensusWorkflow or concensusDataSet.}
@@ -26,6 +27,8 @@ resample(x, ...)
 \item{n_samples}{Numeric.}
 
 \item{prevalence}{Numeric. Positive controls (if present) are resampled at a frequency of \code{n_samples * 2 * prevalence}.}
+
+\item{grouping}{Character vector. Grouping of wells.}
 
 \item{positive_control}{Character. Pattern to assign positive controls on. Overrides any already-present positive control.}
 }

@@ -6,22 +6,34 @@ main <- function(cl_options) {
 
   library(concensusGLM)
 
+  println('Loading ConcensusWorkflow from', cl_options$data, '...')
+
   concensus_data <- readRDS(cl_options$data)
 
   class(concensus_data) <- c('concensusWorkflow', class(concensus_data))
 
   println('Analysis output will be in', concensus_data$pipelines[[1]]$working_directory)
 
-  concensus_data_res <- scatter(concensus_data, 'strain')
-
-  concensus_data_res <- resample(concensus_data_res,
+  concensus_data_res <- resample(concensus_data,
                                  sample_size=as.numeric(cl_options$`sample-size`),
                                  n_replicates=as.numeric(cl_options$replicates),
                                  positive_control='^BRD-K32247306')
 
-  concensus_data_res <- getFinalModel(concensus_data_res,
-                                grouping='strain',
-                                conditions=c('compound', 'concentration'))
+  concensus_data_res <- execute(concensus_data_res,
+                                locality=ifelse(is.null(cl_options$sge), 'local', 'sge'),
+                                # parallelize on local computer?
+                                parallel=ifelse(is.null(cl_options$sge), cl_options$parallel, FALSE),
+
+                                # parameters for using SGE
+                                submit_script=cl_options$sge,
+                                # sets memory reservation
+                                mem_multiplier=1000,
+                                # conservative run time
+                                run_time='8:00:00')
+
+  concensus_data_res <- scatter(concensus_data_res, 'strain')
+
+  concensus_data_res <- analyze(concensus_data_res)
 
   concensus_data_res <- execute(concensus_data_res,
                                 locality=ifelse(is.null(cl_options$sge), 'local', 'sge'),

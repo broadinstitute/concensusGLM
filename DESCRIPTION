@@ -9,6 +9,7 @@ Depends:
     dplyr,
     errR,
     future,
+    knitr,
     MASS,
     methods,
     magrittr,

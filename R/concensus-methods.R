@@ -16,23 +16,33 @@ clean.default <- function(x, ...) stop('Can\'t clean', class(x), '\n')
 #' @rdname clean
 #' @importFrom magrittr %>%
 #' @export
-clean.data.frame <- function(x, threshold=1000, ...) {
+clean.data.frame <- function(x, threshold=100, plate_fraction=0.6, ...) {
+
+  n_plates <- length(get_unique_values(x, 'plate_name'))
 
   # remove strains with low usage
-  unused_strains <- x %>%
+  unused_strains0 <- x %>%
     dplyr::group_by(strain, plate_name) %>%
     dplyr::summarise(sum_count=sum(count)) %>%
     dplyr::ungroup() %>%
     dplyr::group_by(strain) %>%
     dplyr::summarize(n_plates_absent=sum(sum_count <= threshold),
-              sum_count=mean(sum_count[sum_count <= threshold])) %>%
+                     mean_sum_count=mean(sum_count[sum_count <= threshold])) %>%
     dplyr::arrange(n_plates_absent) %>%
-    dplyr::filter(n_plates_absent > 10) %>%
-    get_unique_values('strain')
+    dplyr::filter(n_plates_absent > n_plates * plate_fraction)
 
-  println('Removing strains with total counts <', threshold + 1, ':', paste(unused_strains, collapse=', '))
+  unused_strains <- unused_strains0 %>% get_unique_values('strain')
 
-  x <- x %>% filter(! strain %in% unused_strains)
+  if ( length(unused_strains) > 0 ) {
+
+    println('Removing', length(unused_strains), 'strains with total counts <',
+            threshold + 1, 'in more than', plate_fraction, 'of the plates (',
+            n_plates, ') :')
+    print(knitr::kable(unused_strains0))
+
+    x <- x %>% filter(! strain %in% unused_strains)
+
+  }
 
   # remove plates with low usage
 
@@ -99,7 +109,8 @@ scatter.concensusWorkflow <- function(x, by, ...) {
 
   class(x) <- 'workflow'
 
-  elements <- intersect(c('data', 'model_parameters', 'resampled'), names(x$pipelines[[1]]$data))
+  elements <- intersect(c('data', 'model_parameters', 'resampled', 'mean_variance_relationship'),
+                        names(x$pipelines[[1]]$data))
 
   println("Chunking elements", pyjoin(elements, ', '), '...')
 
